@@ -20,8 +20,8 @@ export default function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-50">
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between border-b border-white/5 bg-black/60 px-4 backdrop-blur-xl md:px-8">
+    <header className="fixed left-0 right-0 top-0 z-[70]">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between border-b border-white/5 bg-black/90 px-4 backdrop-blur-xl md:px-8">
         {/* Logo */}
         <Link
           href="/"
@@ -84,7 +84,7 @@ export default function SiteHeader() {
         {mobileOpen && (
           <motion.div
             key="mobile-menu"
-            className="fixed inset-0 top-16 z-40 flex flex-col gap-6 bg-black px-6 py-8 md:hidden"
+            className="fixed inset-0 top-16 z-[60] flex flex-col gap-6 bg-black px-6 py-8 md:hidden overflow-y-auto"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -94,7 +94,7 @@ export default function SiteHeader() {
                 key={l.href}
                 href={l.href}
                 onClick={() => setMobileOpen(false)}
-                className="text-sm font-medium uppercase tracking-[0.2em] text-white/80 hover:text-white"
+                className="text-lg font-medium uppercase tracking-[0.2em] text-white/80 active:text-white py-2"
               >
                 {l.label}
               </Link>
