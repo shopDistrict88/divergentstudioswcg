@@ -219,7 +219,19 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   const togglePlay = () => setIsPlaying((prev) => !prev);
   
-  const toggleMute = () => setIsMuted((prev) => !prev);
+  const toggleMute = () => {
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
+    // Also update volume immediately on the audio element
+    if (audioRef.current) {
+      audioRef.current.volume = newMuted ? 0 : volume;
+      // If unmuting and not playing, start playing
+      if (!newMuted && !isPlaying) {
+        setIsPlaying(true);
+        audioRef.current.play().catch(() => {});
+      }
+    }
+  };
   
   const setVolume = (v: number) => setVolumeState(Math.max(0, Math.min(1, v)));
 
