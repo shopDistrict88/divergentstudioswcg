@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useSyncExternalStore } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
@@ -78,61 +78,35 @@ const defaultContent: SiteContent = {
   aboutText: "",
 };
 
-// Helper functions for localStorage
-function subscribeToStorage(callback: () => void) {
-  window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
-}
-
-function getStoredProducts(): Product[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const saved = localStorage.getItem("divergent-products");
-    return saved ? JSON.parse(saved) : [];
-  } catch { return []; }
-}
-
-function getStoredDrops(): Drop[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const saved = localStorage.getItem("divergent-drops");
-    return saved ? JSON.parse(saved) : [];
-  } catch { return []; }
-}
-
-function getStoredOrders(): Order[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const saved = localStorage.getItem("divergent-orders");
-    return saved ? JSON.parse(saved) : [];
-  } catch { return []; }
-}
-
-function getStoredContent(): SiteContent {
-  if (typeof window === "undefined") return defaultContent;
-  try {
-    const saved = localStorage.getItem("divergent-content");
-    return saved ? JSON.parse(saved) : defaultContent;
-  } catch { return defaultContent; }
-}
-
 export default function AdminDashboardPage() {
   const { isAuthenticated, logout } = useAdmin();
   const { tracks } = useAudio();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   
-  // Use useSyncExternalStore for initial data loading
-  const storedProducts = useSyncExternalStore(subscribeToStorage, getStoredProducts, () => []);
-  const storedDrops = useSyncExternalStore(subscribeToStorage, getStoredDrops, () => []);
-  const storedOrders = useSyncExternalStore(subscribeToStorage, getStoredOrders, () => []);
-  const storedContent = useSyncExternalStore(subscribeToStorage, getStoredContent, () => defaultContent);
-  
-  // State for different sections (initialized from storage)
-  const [products, setProducts] = useState<Product[]>(storedProducts);
-  const [drops, setDrops] = useState<Drop[]>(storedDrops);
-  const [orders] = useState<Order[]>(storedOrders);
-  const [content, setContent] = useState<SiteContent>(storedContent);
+  // State for different sections
+  const [products, setProducts] = useState<Product[]>([]);
+  const [drops, setDrops] = useState<Drop[]>([]);
+  const [orders] = useState<Order[]>([]);
+  const [content, setContent] = useState<SiteContent>(defaultContent);
+
+  // Load data from localStorage after hydration
+  useEffect(() => {
+    try {
+      const savedProducts = localStorage.getItem("divergent-products");
+      const savedDrops = localStorage.getItem("divergent-drops");
+      const savedContent = localStorage.getItem("divergent-content");
+
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (savedProducts) setProducts(JSON.parse(savedProducts));
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (savedDrops) setDrops(JSON.parse(savedDrops));
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (savedContent) setContent(JSON.parse(savedContent));
+    } catch (e) {
+      console.error("Failed to load admin data:", e);
+    }
+  }, []);
 
   // Redirect if not authenticated
   useEffect(() => {

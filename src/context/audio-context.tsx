@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useRef, useEffect, ReactNode, useSyncExternalStore, useCallback } from "react";
+import { createContext, useContext, useState, useRef, useEffect, ReactNode, useCallback } from "react";
 
 interface Track {
   id: string;
@@ -39,65 +39,43 @@ const defaultTracks: Track[] = [
   },
 ];
 
-// Helper functions for storage
-function getStoredTracks(): Track[] {
-  if (typeof window === "undefined") return defaultTracks;
-  try {
-    const saved = localStorage.getItem("divergent-audio-tracks");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
-      }
-    }
-  } catch {
-    // Ignore parse errors
-  }
-  return defaultTracks;
-}
-
-function getStoredMuted(): boolean {
-  if (typeof window === "undefined") return true;
-  const saved = localStorage.getItem("divergent-audio-muted");
-  return saved === null ? true : saved === "true";
-}
-
-function getStoredEntered(): boolean {
-  if (typeof window === "undefined") return false;
-  return sessionStorage.getItem("divergent-entered") === "true";
-}
-
-function subscribeToStorage(callback: () => void) {
-  window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
-}
-
 export function AudioProvider({ children }: { children: ReactNode }) {
-  // Use useSyncExternalStore for initial values from storage
-  const initialTracks = useSyncExternalStore(
-    subscribeToStorage,
-    getStoredTracks,
-    () => defaultTracks
-  );
-  const initialMuted = useSyncExternalStore(
-    subscribeToStorage,
-    getStoredMuted,
-    () => true
-  );
-  const initialEntered = useSyncExternalStore(
-    subscribeToStorage,
-    getStoredEntered,
-    () => false
-  );
-
   const [isPlaying, setIsPlaying] = useState(true); // Auto-play on load
-  const [isMuted, setIsMuted] = useState(initialMuted);
+  const [isMuted, setIsMuted] = useState(true); // Start muted by default
   const [volume, setVolumeState] = useState(0.3);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const [tracks, setTracks] = useState<Track[]>(initialTracks);
-  const [hasEnteredSite, setHasEnteredSite] = useState(initialEntered);
+  const [tracks, setTracks] = useState<Track[]>(defaultTracks);
+  const [hasEnteredSite, setHasEnteredSite] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const tracksLengthRef = useRef(tracks.length);
+
+  // Load stored values after hydration
+  useEffect(() => {
+    try {
+      const savedTracks = localStorage.getItem("divergent-audio-tracks");
+      if (savedTracks) {
+        const parsed = JSON.parse(savedTracks);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setTracks(parsed);
+        }
+      }
+
+      const savedMuted = localStorage.getItem("divergent-audio-muted");
+      if (savedMuted !== null) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setIsMuted(savedMuted === "true");
+      }
+
+      const savedEntered = sessionStorage.getItem("divergent-entered");
+      if (savedEntered === "true") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setHasEnteredSite(true);
+      }
+    } catch (e) {
+      console.error("Failed to load audio settings:", e);
+    }
+  }, []);
 
   // Keep tracks length ref updated
   useEffect(() => {

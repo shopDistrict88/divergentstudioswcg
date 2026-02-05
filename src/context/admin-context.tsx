@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode, useSyncExternalStore } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
 interface AdminContextType {
   isAuthenticated: boolean;
@@ -13,27 +13,17 @@ const AdminContext = createContext<AdminContextType | undefined>(undefined);
 // Simple admin password - in production, use proper auth
 const ADMIN_PASSWORD = "divergent2026";
 
-// Helper to safely read sessionStorage
-function getStoredAuth(): boolean {
-  if (typeof window === "undefined") return false;
-  return sessionStorage.getItem("divergent-admin-auth") === "true";
-}
-
-// Subscribe function for useSyncExternalStore
-function subscribeToStorage(callback: () => void) {
-  window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
-}
-
 export function AdminProvider({ children }: { children: ReactNode }) {
-  // Use useSyncExternalStore to safely read from sessionStorage
-  const storedAuth = useSyncExternalStore(
-    subscribeToStorage,
-    getStoredAuth,
-    () => false // Server snapshot
-  );
-  
-  const [isAuthenticated, setIsAuthenticated] = useState(storedAuth);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Hydrate auth state from sessionStorage after mount
+  useEffect(() => {
+    const auth = sessionStorage.getItem("divergent-admin-auth");
+    if (auth === "true") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   const login = (password: string): boolean => {
     if (password === ADMIN_PASSWORD) {
