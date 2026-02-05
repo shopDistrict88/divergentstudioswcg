@@ -17,81 +17,28 @@ export default function SplashScreen() {
           className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-[#050505]"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.8, ease: "easeInOut" }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
         >
-          {/* Animated background */}
+          {/* Simplified background - less blur for performance */}
           <div className="absolute inset-0 overflow-hidden">
-            {/* Pulsing glow */}
-            <motion.div
-              className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent)]/10 blur-[120px]"
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.3, 0.5, 0.3],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
+            {/* Static glow - no animation for faster load */}
+            <div
+              className="absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent)]/15 blur-[80px] md:h-[600px] md:w-[600px] md:blur-[120px]"
             />
-            
-            {/* Secondary glow */}
-            <motion.div
-              className="absolute left-1/4 top-1/3 h-[300px] w-[300px] rounded-full bg-white/5 blur-[100px]"
-              animate={{
-                x: [0, 50, 0],
-                y: [0, -30, 0],
-                opacity: [0.2, 0.4, 0.2],
-              }}
-              transition={{
-                duration: 6,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-
-            {/* Animated lines */}
-            <svg
-              className="absolute inset-0 h-full w-full opacity-10"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <motion.line
-                x1="0%"
-                y1="50%"
-                x2="100%"
-                y2="50%"
-                stroke="var(--accent)"
-                strokeWidth="1"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.5 }}
-                transition={{ duration: 2, ease: "easeInOut" }}
-              />
-              <motion.line
-                x1="50%"
-                y1="0%"
-                x2="50%"
-                y2="100%"
-                stroke="var(--accent)"
-                strokeWidth="1"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.3 }}
-                transition={{ duration: 2, delay: 0.5, ease: "easeInOut" }}
-              />
-            </svg>
           </div>
 
-          {/* Content */}
+          {/* Content - faster animations */}
           <motion.div
             className="relative z-10 flex flex-col items-center"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
           >
             {/* Logo/Brand */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
               className="mb-8"
             >
               <h1 className="text-2xl font-bold uppercase tracking-[0.5em] text-white md:text-4xl text-glow">
@@ -105,20 +52,13 @@ export default function SplashScreen() {
             {/* Enter Button */}
             <motion.button
               onClick={enterSite}
-              className="group relative overflow-hidden rounded-full border border-white/20 bg-transparent px-12 py-4 text-sm font-semibold uppercase tracking-[0.3em] text-white transition-all duration-500 hover:border-[var(--accent)] hover:shadow-[0_0_40px_rgba(189,22,64,0.4)]"
-              initial={{ opacity: 0, y: 20 }}
+              className="group relative overflow-hidden rounded-full border border-white/20 bg-transparent px-12 py-4 text-sm font-semibold uppercase tracking-[0.3em] text-white transition-all duration-300 hover:border-[var(--accent)] hover:shadow-[0_0_30px_rgba(189,22,64,0.3)]"
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 1 }}
-              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
               whileTap={{ scale: 0.98 }}
             >
               <span className="relative z-10">Enter</span>
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-[var(--accent)]/0 via-[var(--accent)]/20 to-[var(--accent)]/0"
-                initial={{ x: "-100%" }}
-                whileHover={{ x: "100%" }}
-                transition={{ duration: 0.6 }}
-              />
             </motion.button>
 
             {/* Audio toggle */}
@@ -126,7 +66,7 @@ export default function SplashScreen() {
               className="mt-12 flex flex-col items-center gap-3"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 1.5 }}
+              transition={{ duration: 0.4, delay: 0.6 }}
             >
               <button
                 onClick={toggleMute}
@@ -155,7 +95,7 @@ export default function SplashScreen() {
             className="absolute bottom-8 text-[9px] uppercase tracking-[0.2em] text-white/20"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 2 }}
+            transition={{ duration: 0.4, delay: 0.8 }}
           >
             Built by Wilson Collective Group LLC
           </motion.p>
