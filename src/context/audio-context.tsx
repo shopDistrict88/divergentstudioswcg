@@ -90,7 +90,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     () => false
   );
 
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true); // Auto-play on load
   const [isMuted, setIsMuted] = useState(initialMuted);
   const [volume, setVolumeState] = useState(0.3);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
@@ -140,23 +140,23 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       const track = tracks[currentTrackIndex];
       if (track) {
         audioRef.current.src = track.src;
-        if (isPlaying && hasEnteredSite) {
+        if (isPlaying && !isMuted) {
           audioRef.current.play().catch(() => {});
         }
       }
     }
-  }, [currentTrackIndex, tracks, isPlaying, hasEnteredSite]);
+  }, [currentTrackIndex, tracks, isPlaying, isMuted]);
 
   // Handle play/pause
   useEffect(() => {
     if (audioRef.current) {
-      if (isPlaying && hasEnteredSite && !isMuted) {
+      if (isPlaying && !isMuted) {
         audioRef.current.play().catch(() => {});
       } else {
         audioRef.current.pause();
       }
     }
-  }, [isPlaying, hasEnteredSite, isMuted]);
+  }, [isPlaying, isMuted]);
 
   // Handle volume/mute
   useEffect(() => {
