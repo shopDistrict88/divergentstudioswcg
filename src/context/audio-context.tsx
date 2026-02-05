@@ -128,8 +128,20 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (typeof window !== "undefined" && !audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.loop = false;
-      audioRef.current.volume = volume;
+      audioRef.current.volume = isMuted ? 0 : volume;
       audioRef.current.addEventListener("ended", handleTrackEnded);
+      
+      // If we have tracks and user has entered before, set up audio
+      const savedEntered = localStorage.getItem("divergent-entered");
+      const savedPlaying = localStorage.getItem("divergent-audio-playing");
+      if (savedEntered === "true" && savedPlaying === "true" && tracks.length > 0) {
+        const track = tracks[currentTrackIndex];
+        if (track) {
+          audioRef.current.src = track.src;
+          // Attempt to auto-play (may be blocked by browser)
+          audioRef.current.play().catch(() => {});
+        }
+      }
     }
 
     return () => {
@@ -147,23 +159,23 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       const track = tracks[currentTrackIndex];
       if (track) {
         audioRef.current.src = track.src;
-        if (isPlaying && !isMuted) {
+        if (isPlaying) {
           audioRef.current.play().catch(() => {});
         }
       }
     }
-  }, [currentTrackIndex, tracks, isPlaying, isMuted]);
+  }, [currentTrackIndex, tracks, isPlaying]);
 
   // Handle play/pause
   useEffect(() => {
     if (audioRef.current) {
-      if (isPlaying && !isMuted) {
+      if (isPlaying) {
         audioRef.current.play().catch(() => {});
       } else {
         audioRef.current.pause();
       }
     }
-  }, [isPlaying, isMuted]);
+  }, [isPlaying]);
 
   // Handle volume/mute
   useEffect(() => {
@@ -209,8 +221,13 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const enterSite = () => {
     setHasEnteredSite(true);
     localStorage.setItem("divergent-entered", "true");
-    if (!isMuted) {
-      setIsPlaying(true);
+    // Start playing and unmute when user enters
+    setIsMuted(false);
+    setIsPlaying(true);
+    // Try to play immediately
+    if (audioRef.current && tracks.length > 0) {
+      audioRef.current.volume = volume;
+      audioRef.current.play().catch(() => {});
     }
   };
 
