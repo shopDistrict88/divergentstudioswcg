@@ -33,9 +33,9 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined);
 const defaultTracks: Track[] = [
   {
     id: "1",
-    name: "Ambient Drift",
-    artist: "Studio Beats",
-    src: "/audio/track1.mp3",
+    name: "Nine Vicious",
+    artist: "Type Beat",
+    src: "/audio/nine-vicious.m4a",
   },
 ];
 
