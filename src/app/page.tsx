@@ -75,6 +75,15 @@ export default function Home() {
               <Link href="/collection">View Collection</Link>
             </Button>
           </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 1.8 }}
+            className="mt-16 text-[9px] uppercase tracking-[0.2em] text-white/25"
+          >
+            Built by Wilson Collective Group LLC
+          </motion.p>
         </motion.div>
       </section>
 

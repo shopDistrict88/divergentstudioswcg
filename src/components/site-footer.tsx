@@ -81,6 +81,9 @@ export default function SiteFooter() {
         <p className="text-[10px] uppercase tracking-[0.2em] text-white/30">
           © 2026 Divergent Studios. All rights reserved.
         </p>
+        <p className="mt-2 text-[9px] uppercase tracking-[0.15em] text-white/20">
+          Built by Wilson Collective Group LLC
+        </p>
       </div>
     </footer>
   );
