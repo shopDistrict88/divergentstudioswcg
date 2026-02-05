@@ -2,11 +2,14 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { CartProvider } from "@/context/cart-context";
 import { LoadingProvider } from "@/context/loading-context";
+import { AudioProvider } from "@/context/audio-context";
+import { AdminProvider } from "@/context/admin-context";
 import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
 import AnnouncementBar from "@/components/announcement-bar";
 import CartDrawer from "@/components/cart-drawer";
 import GrainOverlay from "@/components/grain-overlay";
+import SplashScreen from "@/components/splash-screen";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -29,16 +32,21 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        <CartProvider>
-          <LoadingProvider>
-            <GrainOverlay />
-            <AnnouncementBar />
-            <SiteHeader />
-            <CartDrawer />
-            <main className="min-h-screen pt-16">{children}</main>
-            <SiteFooter />
-          </LoadingProvider>
-        </CartProvider>
+        <AdminProvider>
+          <AudioProvider>
+            <CartProvider>
+              <LoadingProvider>
+                <SplashScreen />
+                <GrainOverlay />
+                <AnnouncementBar />
+                <SiteHeader />
+                <CartDrawer />
+                <main className="min-h-screen pt-16">{children}</main>
+                <SiteFooter />
+              </LoadingProvider>
+            </CartProvider>
+          </AudioProvider>
+        </AdminProvider>
       </body>
     </html>
   );

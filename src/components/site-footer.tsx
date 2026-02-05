@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Instagram, Twitter } from "lucide-react";
+import { Instagram, Twitter, Lock } from "lucide-react";
 
 const footerLinks = [
   {
@@ -84,6 +84,13 @@ export default function SiteFooter() {
         <p className="mt-2 text-[9px] uppercase tracking-[0.15em] text-white/20">
           Built by Wilson Collective Group LLC
         </p>
+        <Link
+          href="/studio-admin/login"
+          className="mt-4 inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.15em] text-white/15 transition hover:text-white/40"
+        >
+          <Lock className="h-3 w-3" />
+          Admin
+        </Link>
       </div>
     </footer>
   );

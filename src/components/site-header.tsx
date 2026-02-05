@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ShoppingBag, Menu, X } from "lucide-react";
+import { ShoppingBag, Menu, X, Volume2, VolumeX } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/cart-context";
+import { useAudio } from "@/context/audio-context";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -17,6 +18,7 @@ const navLinks = [
 
 export default function SiteHeader() {
   const { toggleCart, itemCount } = useCart();
+  const { isMuted, toggleMute, hasEnteredSite } = useAudio();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -46,6 +48,17 @@ export default function SiteHeader() {
 
         {/* Right Icons */}
         <div className="flex items-center gap-4">
+          {/* Audio toggle */}
+          {hasEnteredSite && (
+            <button
+              onClick={toggleMute}
+              aria-label={isMuted ? "Unmute audio" : "Mute audio"}
+              className="rounded-full border border-white/10 p-2 text-white/60 transition hover:text-white"
+            >
+              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </button>
+          )}
+
           <button
             onClick={toggleCart}
             aria-label="Open cart"
@@ -99,6 +112,17 @@ export default function SiteHeader() {
                 {l.label}
               </Link>
             ))}
+
+            {/* Mobile audio toggle */}
+            {hasEnteredSite && (
+              <button
+                onClick={toggleMute}
+                className="flex items-center gap-3 py-2 text-lg font-medium uppercase tracking-[0.2em] text-white/80"
+              >
+                {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                {isMuted ? "Sound Off" : "Sound On"}
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
