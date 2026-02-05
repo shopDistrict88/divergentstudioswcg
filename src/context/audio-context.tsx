@@ -43,6 +43,30 @@ const defaultTracks: Track[] = [
     artist: "Type Beat",
     src: "/audio/esdeekid.m4a",
   },
+  {
+    id: "3",
+    name: "KD!",
+    artist: "Type Beat",
+    src: "/audio/kd.m4a",
+  },
+  {
+    id: "4",
+    name: "Lil Uzi Vert",
+    artist: "Type Beat",
+    src: "/audio/lil-uzi-vert.m4a",
+  },
+  {
+    id: "5",
+    name: "Juice WRLD x Trippie Redd",
+    artist: "Type Beat",
+    src: "/audio/juice-wrld-trippie.m4a",
+  },
+  {
+    id: "6",
+    name: "My Song 783",
+    artist: "Type Beat",
+    src: "/audio/my-song-783.m4a",
+  },
 ];
 
 export function AudioProvider({ children }: { children: ReactNode }) {
