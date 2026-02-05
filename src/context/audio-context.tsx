@@ -67,10 +67,25 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         setIsMuted(savedMuted === "true");
       }
 
-      const savedEntered = sessionStorage.getItem("divergent-entered");
+      // Use localStorage for persistence across sessions
+      const savedEntered = localStorage.getItem("divergent-entered");
       if (savedEntered === "true") {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setHasEnteredSite(true);
+      }
+
+      // Restore track index
+      const savedTrackIndex = localStorage.getItem("divergent-track-index");
+      if (savedTrackIndex !== null) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setCurrentTrackIndex(parseInt(savedTrackIndex, 10) || 0);
+      }
+
+      // Restore playing state (only if user has entered before)
+      const savedPlaying = localStorage.getItem("divergent-audio-playing");
+      if (savedPlaying === "true" && savedEntered === "true") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setIsPlaying(true);
       }
     } catch (e) {
       console.error("Failed to load audio settings:", e);
@@ -88,6 +103,20 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("divergent-audio-muted", String(isMuted));
     }
   }, [isMuted]);
+
+  // Save playing state
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("divergent-audio-playing", String(isPlaying));
+    }
+  }, [isPlaying]);
+
+  // Save track index
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("divergent-track-index", String(currentTrackIndex));
+    }
+  }, [currentTrackIndex]);
 
   // Handle track ended callback
   const handleTrackEnded = useCallback(() => {
@@ -179,7 +208,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   const enterSite = () => {
     setHasEnteredSite(true);
-    sessionStorage.setItem("divergent-entered", "true");
+    localStorage.setItem("divergent-entered", "true");
     if (!isMuted) {
       setIsPlaying(true);
     }
