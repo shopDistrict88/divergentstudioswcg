@@ -25,6 +25,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (pathname !== prevPathRef.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoading(true);
       prevPathRef.current = pathname;
 
