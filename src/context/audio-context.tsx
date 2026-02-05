@@ -37,6 +37,12 @@ const defaultTracks: Track[] = [
     artist: "Type Beat",
     src: "/audio/nine-vicious.m4a",
   },
+  {
+    id: "2",
+    name: "EsDeeKid",
+    artist: "Type Beat",
+    src: "/audio/esdeekid.m4a",
+  },
 ];
 
 export function AudioProvider({ children }: { children: ReactNode }) {
@@ -118,9 +124,12 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
   }, [currentTrackIndex]);
 
-  // Handle track ended callback
+  // Handle track ended callback - add 3 second delay before next track
   const handleTrackEnded = useCallback(() => {
-    setCurrentTrackIndex((prev) => (prev + 1) % Math.max(1, tracksLengthRef.current));
+    // Pause briefly, then move to next track
+    setTimeout(() => {
+      setCurrentTrackIndex((prev) => (prev + 1) % Math.max(1, tracksLengthRef.current));
+    }, 3000); // 3 second delay between tracks
   }, []);
 
   // Initialize audio element
