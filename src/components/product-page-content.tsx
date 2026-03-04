@@ -108,7 +108,7 @@ export default function ProductPageContent({
       <section className="section-spacing">
         <SectionHeading
           title="Seen in the Studio"
-          subtitle="User gallery coming soon"
+          subtitle="User gallery"
         />
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (

@@ -1,9 +1,13 @@
 import { notFound } from "next/navigation";
-import { journalPosts } from "@/lib/data";
+import { fetchJournalPosts } from "@/lib/supabase-data";
 import JournalPostContent from "@/components/journal-post-content";
 
-export function generateStaticParams() {
-  return journalPosts.map((post) => ({ slug: post.slug }));
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  const posts = await fetchJournalPosts();
+  return posts.map((post) => ({ slug: post.slug }));
 }
 
 export default async function JournalPostPage({
@@ -12,7 +16,8 @@ export default async function JournalPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = journalPosts.find((p) => p.slug === slug);
+  const posts = await fetchJournalPosts();
+  const post = posts.find((p) => p.slug === slug);
 
   if (!post) {
     notFound();

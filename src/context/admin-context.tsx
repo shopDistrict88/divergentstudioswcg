@@ -10,8 +10,8 @@ interface AdminContextType {
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
-// Simple admin password - in production, use proper auth
-const ADMIN_PASSWORD = "divergent2026";
+// Admin password — change in production if needed
+const ADMIN_PASSWORD = "Wilsoncollectivegroupllcdivergentstudios2026";
 
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

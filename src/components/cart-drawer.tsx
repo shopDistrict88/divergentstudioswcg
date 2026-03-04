@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { productImageTones } from "@/lib/data";
 
 export default function CartDrawer() {
-  const { isOpen, closeCart, items, removeItem, updateQuantity, subtotal } = useCart();
+  const { isOpen, closeCart, items = [], removeItem, updateQuantity, subtotal } = useCart();
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && closeCart()}>
@@ -38,26 +38,34 @@ export default function CartDrawer() {
           </div>
         ) : (
           <div className="flex flex-col gap-6 mt-4">
-            {items.map((item) => {
-              const tone = item.product.images[0]?.tone || "slate";
+            {items.filter((item) => item?.product).map((item) => {
+              const tone = item.product?.images?.[0]?.tone || "slate";
               return (
-                <div key={`${item.product.id}-${item.size}`} className="flex gap-4">
+                <div key={`${item.product?.id ?? ""}-${item.size ?? ""}`} className="flex gap-4">
                   {/* Thumbnail */}
                   <div
-                    className={`h-20 w-16 rounded-lg bg-gradient-to-br ${productImageTones[tone]}`}
-                  />
+                    className={`relative h-20 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gradient-to-br ${productImageTones[tone]}`}
+                  >
+                    {item.product?.images?.[0]?.src ? (
+                      <img
+                        src={item.product.images[0].src}
+                        alt={item.product.images[0].alt || item.product.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : null}
+                  </div>
                   <div className="flex flex-1 flex-col justify-between">
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wide">
-                          {item.product.name}
+                          {item.product?.name ?? "Item"}
                         </p>
                         <p className="text-[10px] text-white/50 uppercase tracking-wide">
                           {item.size}
                         </p>
                       </div>
                       <button
-                        onClick={() => removeItem(item.product.id, item.size)}
+                        onClick={() => removeItem(item.product?.id ?? "", item.size)}
                         className="text-white/40 hover:text-white transition"
                         aria-label="Remove item"
                       >
@@ -68,7 +76,7 @@ export default function CartDrawer() {
                       <div className="flex items-center gap-2 rounded-full border border-white/15 p-1">
                         <button
                           onClick={() =>
-                            updateQuantity(item.product.id, item.size, item.quantity - 1)
+                            updateQuantity(item.product?.id ?? "", item.size, item.quantity - 1)
                           }
                           className="h-6 w-6 flex items-center justify-center text-white/60 hover:text-white"
                           aria-label="Decrease quantity"
@@ -78,7 +86,7 @@ export default function CartDrawer() {
                         <span className="w-6 text-center text-xs">{item.quantity}</span>
                         <button
                           onClick={() =>
-                            updateQuantity(item.product.id, item.size, item.quantity + 1)
+                            updateQuantity(item.product?.id ?? "", item.size, item.quantity + 1)
                           }
                           className="h-6 w-6 flex items-center justify-center text-white/60 hover:text-white"
                           aria-label="Increase quantity"
@@ -86,7 +94,7 @@ export default function CartDrawer() {
                           <Plus className="h-3 w-3" />
                         </button>
                       </div>
-                      <p className="text-sm font-medium">${item.product.price * item.quantity}</p>
+                      <p className="text-sm font-medium">${(item.product?.price ?? 0) * (item.quantity ?? 1)}</p>
                     </div>
                   </div>
                 </div>

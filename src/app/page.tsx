@@ -10,10 +10,15 @@ import SectionHeading from "@/components/section-heading";
 import ProductCard from "@/components/product-card";
 import JournalCard from "@/components/journal-card";
 import ArchiveCard from "@/components/archive-card";
-import { exhibitions, products, journalPosts } from "@/lib/data";
+import { useExhibitions } from "@/context/exhibitions-context";
+import { useJournal } from "@/context/journal-context";
+import { useProducts } from "@/context/products-context";
 import { Input } from "@/components/ui/input";
 
 export default function Home() {
+  const { exhibitions } = useExhibitions();
+  const { journalPosts } = useJournal();
+  const { products } = useProducts();
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -22,7 +27,7 @@ export default function Home() {
   const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
-  const nova = exhibitions.find((e) => e.id === "nova")!;
+  const nova = exhibitions.find((e) => e.id === "nova" || e.slug === "nova");
   const featuredProducts = products.slice(0, 3);
   const featuredPosts = journalPosts.slice(0, 3);
 
@@ -88,7 +93,7 @@ export default function Home() {
       </section>
 
       {/* Featured Exhibition */}
-      <FeaturedExhibitionSection exhibition={nova} />
+      {nova && <FeaturedExhibitionSection exhibition={nova} />}
 
       {/* Featured Pieces */}
       <section className="section-spacing mx-auto max-w-7xl px-4 md:px-8">
@@ -128,7 +133,7 @@ export default function Home() {
           subtitle="Past and upcoming exhibitions"
         />
         <div className="grid gap-6 md:grid-cols-2">
-          <ArchiveCard exhibition={nova} index={0} />
+          {nova && <ArchiveCard exhibition={nova} index={0} />}
           <ArchiveCard locked index={1} />
         </div>
       </section>
@@ -139,7 +144,7 @@ export default function Home() {
   );
 }
 
-function FeaturedExhibitionSection({ exhibition }: { exhibition: typeof exhibitions[0] }) {
+function FeaturedExhibitionSection({ exhibition }: { exhibition: { id: string; title: string; slug: string; meaning: string } }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 

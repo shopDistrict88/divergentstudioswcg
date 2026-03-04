@@ -25,6 +25,39 @@ type CartAction =
 
 const STORAGE_KEY = "divergent-cart";
 
+/** Slim item for localStorage — no images to avoid QuotaExceededError */
+type StoredCartItem = { productId: string; slug: string; name: string; price: number; quantity: number; size: string };
+
+function toStored(items: CartItem[]): StoredCartItem[] {
+  return items.map((i) => ({
+    productId: i.product.id,
+    slug: i.product.slug,
+    name: i.product.name,
+    price: i.product.price,
+    quantity: i.quantity,
+    size: i.size,
+  }));
+}
+
+function fromStored(stored: StoredCartItem[]): CartItem[] {
+  return stored.map((s) => ({
+    product: {
+      id: s.productId,
+      slug: s.slug,
+      name: s.name,
+      price: s.price,
+      description: "",
+      details: { material: "", fit: "", weight: "", care: "" },
+      images: [],
+      exhibitionId: "",
+      tags: [],
+      type: "Hoodie",
+    },
+    quantity: s.quantity,
+    size: s.size,
+  }));
+}
+
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "ADD_ITEM": {
@@ -99,7 +132,31 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        const items = JSON.parse(stored) as CartItem[];
+        const parsed = JSON.parse(stored);
+        if (!Array.isArray(parsed)) return;
+        const items: CartItem[] = parsed.map((p: unknown) => {
+          const x = p as Record<string, unknown>;
+          if (x.productId != null) {
+            return fromStored([x as StoredCartItem])[0];
+          }
+          const old = x as { product: Product; quantity: number; size: string };
+          return {
+            product: {
+              id: old.product?.id ?? "",
+              slug: old.product?.slug ?? "",
+              name: old.product?.name ?? "",
+              price: Number(old.product?.price) ?? 0,
+              description: "",
+              details: { material: "", fit: "", weight: "", care: "" },
+              images: [],
+              exhibitionId: "",
+              tags: [],
+              type: "Hoodie",
+            },
+            quantity: old.quantity ?? 1,
+            size: old.size ?? "",
+          };
+        });
         dispatch({ type: "HYDRATE", payload: items });
       } catch {
         /* ignore */
@@ -108,7 +165,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toStored(state.items)));
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "QuotaExceededError" && state.items.length > 0) {
+        console.warn("[Cart] localStorage quota exceeded, clearing cart");
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch {
+          /* ignore */
+        }
+        dispatch({ type: "HYDRATE", payload: [] });
+      }
+    }
   }, [state.items]);
 
   const addItem = useCallback((product: Product, size: string) => {

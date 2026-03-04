@@ -1,7 +1,11 @@
 "use client";
 
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
+import { loadStripe } from "@stripe/stripe-js";
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { useCart } from "@/context/cart-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,10 +13,21 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import SectionHeading from "@/components/section-heading";
 import { productImageTones } from "@/lib/data";
+import { createCheckout, isPromoValid } from "@/lib/payment-api";
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function CheckoutPage() {
   const { items, subtotal } = useCart();
-  const shipping = subtotal >= 150 ? 0 : 12;
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+
+  const shipping = appliedPromo || subtotal >= 150 ? 0 : 12;
   const total = subtotal + shipping;
 
   if (items.length === 0) {
@@ -28,80 +43,145 @@ export default function CheckoutPage() {
     );
   }
 
+  // Show embedded checkout when we have a client secret
+  if (clientSecret) {
+    return (
+      <div className="section-spacing mx-auto max-w-5xl px-4 md:px-8">
+        <SectionHeading title="Complete Payment" />
+        <div className="surface-card rounded-2xl overflow-hidden min-h-[500px]">
+          <EmbeddedCheckoutProvider
+            stripe={stripePromise}
+            options={{ clientSecret }}
+          >
+            <EmbeddedCheckout />
+          </EmbeddedCheckoutProvider>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="section-spacing mx-auto max-w-5xl px-4 md:px-8">
       <SectionHeading title="Checkout" />
 
       <div className="grid gap-12 lg:grid-cols-2">
-        {/* Form */}
         <motion.form
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-8"
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setError(null);
+            setIsSubmitting(true);
+            try {
+              const result = await createCheckout({
+                items,
+                email: emailRef.current?.value || undefined,
+                subtotal,
+                promoCode: appliedPromo || undefined,
+              });
+              if (result.success && result.clientSecret) {
+                setClientSecret(result.clientSecret);
+                return;
+              }
+              setError(result.success ? "Something went wrong" : result.error);
+            } catch {
+              setError("Unable to reach payment server. Please try again.");
+            } finally {
+              setIsSubmitting(false);
+            }
+          }}
         >
-          {/* Contact */}
-          <fieldset className="space-y-4">
+          <fieldset className="space-y-4" disabled={isSubmitting}>
             <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70 mb-4">
               Contact
             </legend>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="you@email.com" required />
+              <Input
+                ref={emailRef}
+                id="email"
+                type="email"
+                placeholder="you@email.com"
+                required
+              />
             </div>
           </fieldset>
 
-          {/* Shipping */}
-          <fieldset className="space-y-4">
+          <fieldset className="space-y-4" disabled={isSubmitting}>
             <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70 mb-4">
-              Shipping Address
+              Promo Code
             </legend>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="first">First Name</Label>
-                <Input id="first" placeholder="Jane" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="last">Last Name</Label>
-                <Input id="last" placeholder="Doe" required />
-              </div>
+            <div className="flex gap-2">
+              <Input
+                value={promoCode}
+                onChange={(e) => { setPromoCode(e.target.value); setPromoError(null); }}
+                placeholder="Enter promo code"
+                className="flex-1"
+                disabled={!!appliedPromo}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  const code = promoCode.trim();
+                  if (!code) return;
+                  if (isPromoValid(code)) {
+                    setAppliedPromo(code);
+                    setPromoError(null);
+                  } else {
+                    setPromoError("Invalid promo code");
+                  }
+                }}
+                disabled={!promoCode.trim() || !!appliedPromo}
+              >
+                {appliedPromo ? "Applied" : "Apply"}
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input id="address" placeholder="123 Main St" required />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Input id="city" placeholder="Los Angeles" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="state">State</Label>
-                <Input id="state" placeholder="CA" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="zip">ZIP</Label>
-                <Input id="zip" placeholder="90001" required />
-              </div>
-            </div>
+            {appliedPromo && (
+              <p className="text-xs text-green-500">
+                Free shipping applied!{" "}
+                <button
+                  type="button"
+                  onClick={() => { setAppliedPromo(null); setPromoCode(""); }}
+                  className="underline hover:no-underline"
+                >
+                  Remove
+                </button>
+              </p>
+            )}
+            {promoError && (
+              <p className="text-xs text-red-500">{promoError}</p>
+            )}
           </fieldset>
 
-          {/* Payment placeholder */}
-          <fieldset className="space-y-4">
+          <fieldset className="space-y-4" disabled={isSubmitting}>
             <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70 mb-4">
-              Payment
+              Shipping
             </legend>
-            <div className="surface-card rounded-xl p-4 text-center text-xs text-white/50">
-              Payment integration coming soon. This is a front-end demo.
-            </div>
+            <p className="text-xs text-white/50">
+              Shipping address will be collected on the payment form.
+            </p>
           </fieldset>
 
-          <Button type="submit" className="w-full">
-            Complete Order
+          {error && (
+            <div className="rounded-xl border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-4 py-3 text-sm text-[var(--accent)]">
+              {error}
+            </div>
+          )}
+
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Loading payment form…
+              </>
+            ) : (
+              "Proceed to Payment"
+            )}
           </Button>
         </motion.form>
 
-        {/* Summary */}
         <motion.aside
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -114,10 +194,10 @@ export default function CheckoutPage() {
 
           <div className="space-y-4">
             {items.map((item) => {
-              const tone = item.product.images[0]?.tone || "slate";
+              const tone = item.product?.images?.[0]?.tone || "slate";
               return (
                 <div
-                  key={`${item.product.id}-${item.size}`}
+                  key={`${item.product?.id}-${item.size}`}
                   className="flex gap-4"
                 >
                   <div
@@ -126,14 +206,14 @@ export default function CheckoutPage() {
                   <div className="flex flex-1 items-center justify-between">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wide">
-                        {item.product.name}
+                        {item.product?.name}
                       </p>
                       <p className="text-[10px] text-white/50 uppercase tracking-wide">
                         {item.size} × {item.quantity}
                       </p>
                     </div>
                     <p className="text-sm font-medium">
-                      ${item.product.price * item.quantity}
+                      ${(item.product?.price ?? 0) * item.quantity}
                     </p>
                   </div>
                 </div>
@@ -150,7 +230,11 @@ export default function CheckoutPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-white/60">Shipping</span>
-              <span>{shipping === 0 ? "Free" : `$${shipping}`}</span>
+              <span>
+                {shipping === 0
+                  ? (appliedPromo ? "Free (promo)" : "Free")
+                  : `$${shipping}`}
+              </span>
             </div>
           </div>
 

@@ -4,6 +4,9 @@ import { CartProvider } from "@/context/cart-context";
 import { LoadingProvider } from "@/context/loading-context";
 import { AudioProvider } from "@/context/audio-context";
 import { AdminProvider } from "@/context/admin-context";
+import { ProductsProvider } from "@/context/products-context";
+import { ExhibitionsProvider } from "@/context/exhibitions-context";
+import { JournalProvider } from "@/context/journal-context";
 import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
 import AnnouncementBar from "@/components/announcement-bar";
@@ -33,6 +36,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans antialiased">
         <AdminProvider>
+          <ExhibitionsProvider>
+          <JournalProvider>
+          <ProductsProvider>
           <AudioProvider>
             <CartProvider>
               <LoadingProvider>
@@ -46,6 +52,9 @@ export default function RootLayout({
               </LoadingProvider>
             </CartProvider>
           </AudioProvider>
+          </ProductsProvider>
+          </JournalProvider>
+          </ExhibitionsProvider>
         </AdminProvider>
       </body>
     </html>

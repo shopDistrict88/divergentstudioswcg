@@ -29,22 +29,20 @@ import {
 } from "lucide-react";
 import { useAdmin } from "@/context/admin-context";
 import { useAudio } from "@/context/audio-context";
+import { useProducts, type AdminProduct } from "@/context/products-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type TabType = "overview" | "products" | "content" | "drops" | "orders" | "audio" | "settings";
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  description: string;
-  sizes: string[];
-  images: string[];
-  status: "active" | "draft" | "sold-out";
-}
 
 interface Drop {
   id: string;
@@ -81,24 +79,18 @@ const defaultContent: SiteContent = {
 export default function AdminDashboardPage() {
   const { isAuthenticated, logout } = useAdmin();
   const { tracks } = useAudio();
+  const { adminProducts: products, saveProduct, removeProduct } = useProducts();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   
-  // State for different sections
-  const [products, setProducts] = useState<Product[]>([]);
   const [drops, setDrops] = useState<Drop[]>([]);
   const [orders] = useState<Order[]>([]);
   const [content, setContent] = useState<SiteContent>(defaultContent);
 
-  // Load data from localStorage after hydration
   useEffect(() => {
     try {
-      const savedProducts = localStorage.getItem("divergent-products");
       const savedDrops = localStorage.getItem("divergent-drops");
       const savedContent = localStorage.getItem("divergent-content");
-
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (savedProducts) setProducts(JSON.parse(savedProducts));
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (savedDrops) setDrops(JSON.parse(savedDrops));
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -218,8 +210,8 @@ export default function AdminDashboardPage() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              {activeTab === "overview" && <OverviewTab products={products} orders={orders} drops={drops} />}
-              {activeTab === "products" && <ProductsTab products={products} setProducts={setProducts} />}
+              {activeTab === "overview" && <OverviewTab products={products} orders={orders} drops={drops} onNavigate={setActiveTab} />}
+              {activeTab === "products" && <ProductsTab products={products} saveProduct={saveProduct} removeProduct={removeProduct} />}
               {activeTab === "content" && <ContentTab content={content} setContent={setContent} />}
               {activeTab === "drops" && <DropsTab drops={drops} setDrops={setDrops} products={products} />}
               {activeTab === "orders" && <OrdersTab orders={orders} />}
@@ -234,7 +226,7 @@ export default function AdminDashboardPage() {
 }
 
 // Overview Tab
-function OverviewTab({ products, orders, drops }: { products: Product[]; orders: Order[]; drops: Drop[] }) {
+function OverviewTab({ products, orders, drops, onNavigate }: { products: AdminProduct[]; orders: Order[]; drops: Drop[]; onNavigate: (tab: TabType) => void }) {
   const stats = [
     { label: "Total Products", value: products.length, icon: <Package className="h-5 w-5" />, change: "+12%" },
     { label: "Total Orders", value: orders.length, icon: <ShoppingCart className="h-5 w-5" />, change: "+8%" },
@@ -281,16 +273,16 @@ function OverviewTab({ products, orders, drops }: { products: Product[]; orders:
         <div className="rounded-lg border border-white/10 bg-white/5 p-6">
           <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-white">Quick Actions</h3>
           <div className="grid gap-2 sm:grid-cols-2">
-            <Button variant="secondary" className="justify-start text-xs">
+            <Button variant="secondary" className="justify-start text-xs" onClick={() => onNavigate("products")}>
               <Plus className="mr-2 h-3 w-3" /> Add Product
             </Button>
-            <Button variant="secondary" className="justify-start text-xs">
+            <Button variant="secondary" className="justify-start text-xs" onClick={() => onNavigate("drops")}>
               <Calendar className="mr-2 h-3 w-3" /> Schedule Drop
             </Button>
-            <Button variant="secondary" className="justify-start text-xs">
+            <Button variant="secondary" className="justify-start text-xs" onClick={() => onNavigate("audio")}>
               <Music className="mr-2 h-3 w-3" /> Upload Audio
             </Button>
-            <Button variant="secondary" className="justify-start text-xs">
+            <Button variant="secondary" className="justify-start text-xs" onClick={() => onNavigate("content")}>
               <FileText className="mr-2 h-3 w-3" /> Edit Content
             </Button>
           </div>
@@ -301,65 +293,111 @@ function OverviewTab({ products, orders, drops }: { products: Product[]; orders:
 }
 
 // Products Tab
-function ProductsTab({ products, setProducts }: { products: Product[]; setProducts: (p: Product[]) => void }) {
+function ProductsTab({ products, saveProduct, removeProduct }: { products: AdminProduct[]; saveProduct: (p: AdminProduct) => Promise<{ error: Error | null }>; removeProduct: (id: string) => Promise<{ error: Error | null }> }) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
+    slug: "",
     price: "",
     description: "",
     sizes: "S, M, L, XL",
-    status: "draft" as Product["status"],
+    type: "Hoodie" as AdminProduct["type"],
+    status: "active" as AdminProduct["status"],
+    images: [] as string[],
   });
 
-  const handleSave = () => {
-    const newProduct: Product = {
-      id: editingId || Date.now().toString(),
-      name: formData.name,
-      price: parseFloat(formData.price) || 0,
-      description: formData.description,
-      sizes: formData.sizes.split(",").map((s) => s.trim()),
-      images: [],
-      status: formData.status,
-    };
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-    let updated: Product[];
-    if (editingId) {
-      updated = products.map((p) => (p.id === editingId ? newProduct : p));
-    } else {
-      updated = [...products, newProduct];
+  const resetForm = () => {
+    setFormData({ name: "", slug: "", price: "", description: "", sizes: "S, M, L, XL", type: "Hoodie", status: "active", images: [] });
+    setEditingId(null);
+    setSaveError(null);
+  };
+
+  const handleSave = async () => {
+    if (!formData.name?.trim()) {
+      setSaveError("Product name is required.");
+      return;
     }
 
-    setProducts(updated);
-    localStorage.setItem("divergent-products", JSON.stringify(updated));
+    setSaveError(null);
+    const baseSlug = formData.slug?.trim() || formData.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || `product-${Date.now()}`;
+    const id = editingId || baseSlug;
+    const newProduct: AdminProduct = {
+      id,
+      name: formData.name.trim(),
+      slug: baseSlug,
+      price: parseFloat(formData.price) || 0,
+      description: formData.description || "",
+      sizes: formData.sizes.split(",").map((s) => s.trim()).filter(Boolean) || ["S", "M", "L", "XL"],
+      type: formData.type,
+      images: formData.images,
+      status: formData.status,
+      exhibitionId: "nova",
+    };
+
+    setSaving(true);
+    const { error } = await saveProduct(newProduct);
+    setSaving(false);
+    if (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to save product. Check Supabase config and RLS policies.");
+      return;
+    }
     setShowForm(false);
-    setEditingId(null);
-    setFormData({ name: "", price: "", description: "", sizes: "S, M, L, XL", status: "draft" });
+    resetForm();
   };
 
-  const handleDelete = (id: string) => {
-    const updated = products.filter((p) => p.id !== id);
-    setProducts(updated);
-    localStorage.setItem("divergent-products", JSON.stringify(updated));
+  const handleDelete = async (id: string) => {
+    await removeProduct(id);
   };
 
-  const handleEdit = (product: Product) => {
+  const handleEdit = (product: AdminProduct) => {
     setFormData({
       name: product.name,
+      slug: product.slug || product.id,
       price: product.price.toString(),
       description: product.description,
-      sizes: product.sizes.join(", "),
+      sizes: (product.sizes ?? []).join(", ") || "S, M, L, XL",
+      type: product.type || "Hoodie",
       status: product.status,
+      images: Array.isArray(product.images) ? product.images : [],
     });
     setEditingId(product.id);
     setShowForm(true);
+  };
+
+  const handleImageFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []).filter((f) => f.type.startsWith("image/"));
+    if (!files.length) return;
+    Promise.all(
+      files.map(
+        (file) =>
+          new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          })
+      )
+    ).then((dataUrls) => {
+      setFormData((prev) => ({ ...prev, images: [...prev.images, ...dataUrls] }));
+    });
+    e.target.value = "";
+  };
+
+  const removeImage = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
   };
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-lg font-bold uppercase tracking-[0.2em] text-white">Products</h2>
-        <Button onClick={() => setShowForm(true)}>
+        <Button onClick={() => { resetForm(); setShowForm(true); }}>
           <Plus className="mr-2 h-4 w-4" /> Add Product
         </Button>
       </div>
@@ -370,11 +408,16 @@ function ProductsTab({ products, setProducts }: { products: Product[]; setProduc
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 rounded-lg border border-white/10 bg-white/5 p-6"
         >
+          {saveError && (
+            <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              {saveError}
+            </div>
+          )}
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-sm font-bold uppercase tracking-wider text-white">
               {editingId ? "Edit Product" : "New Product"}
             </h3>
-            <button onClick={() => { setShowForm(false); setEditingId(null); }} className="text-white/50 hover:text-white">
+            <button onClick={() => { setShowForm(false); resetForm(); }} className="text-white/50 hover:text-white">
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -389,6 +432,14 @@ function ProductsTab({ products, setProducts }: { products: Product[]; setProduc
               />
             </div>
             <div>
+              <Label>Slug (URL)</Label>
+              <Input
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                placeholder="nova-relic-hoodie"
+              />
+            </div>
+            <div>
               <Label>Price ($)</Label>
               <Input
                 type="number"
@@ -396,6 +447,22 @@ function ProductsTab({ products, setProducts }: { products: Product[]; setProduc
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 placeholder="185"
               />
+            </div>
+            <div>
+              <Label>Type</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(v) => setFormData({ ...formData, type: v as AdminProduct["type"] })}
+              >
+                <SelectTrigger className="rounded-lg border-white/10 bg-black/60 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Hoodie">Hoodie</SelectItem>
+                  <SelectItem value="Pants">Pants</SelectItem>
+                  <SelectItem value="Accessory">Accessory</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="md:col-span-2">
               <Label>Description</Label>
@@ -414,25 +481,65 @@ function ProductsTab({ products, setProducts }: { products: Product[]; setProduc
                 placeholder="S, M, L, XL"
               />
             </div>
+            <div className="md:col-span-2">
+              <Label>Product Images</Label>
+              <div className="flex flex-wrap gap-3">
+                {formData.images.map((src, i) => (
+                  <div key={i} className="relative group">
+                    <img
+                      src={src}
+                      alt={`Preview ${i + 1}`}
+                      className="h-20 w-20 rounded-lg object-cover border border-white/10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(i)}
+                      className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500/90 text-white hover:bg-red-500 transition"
+                      aria-label="Remove image"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                <label className="flex h-20 w-20 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-white/20 bg-white/5 transition hover:border-white/40 hover:bg-white/10">
+                  <Upload className="h-6 w-6 text-white/50" />
+                  <span className="mt-1 text-[10px] text-white/50">Add</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageFiles}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              <p className="mt-1 text-[10px] text-white/40">
+                Upload images from your device. First image is the main thumbnail. Stored in browser.
+              </p>
+            </div>
             <div>
               <Label>Status</Label>
-              <select
+              <Select
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as Product["status"] })}
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
+                onValueChange={(v) => setFormData({ ...formData, status: v as AdminProduct["status"] })}
               >
-                <option value="draft">Draft</option>
-                <option value="active">Active</option>
-                <option value="sold-out">Sold Out</option>
-              </select>
+                <SelectTrigger className="rounded-lg border-white/10 bg-black/60 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="sold-out">Sold Out</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           <div className="mt-6 flex gap-3">
-            <Button onClick={handleSave}>
-              <Save className="mr-2 h-4 w-4" /> Save Product
+            <Button onClick={handleSave} disabled={saving}>
+              <Save className="mr-2 h-4 w-4" /> {saving ? "Saving…" : "Save Product"}
             </Button>
-            <Button variant="secondary" onClick={() => { setShowForm(false); setEditingId(null); }}>
+            <Button variant="secondary" onClick={() => { setShowForm(false); resetForm(); }}>
               Cancel
             </Button>
           </div>
@@ -453,12 +560,20 @@ function ProductsTab({ products, setProducts }: { products: Product[]; setProduc
               className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-4"
             >
               <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/10">
-                  <Package className="h-6 w-6 text-white/50" />
+                <div className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white/10">
+                  {product.images?.[0] ? (
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <Package className="h-6 w-6 text-white/50" />
+                  )}
                 </div>
                 <div>
                   <p className="font-medium text-white">{product.name}</p>
-                  <p className="text-xs text-white/50">${product.price} • {product.sizes.join(", ")}</p>
+                  <p className="text-xs text-white/50">${product.price} • {(product.sizes ?? []).join(", ") || "—"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -565,7 +680,7 @@ function ContentTab({ content, setContent }: { content: SiteContent; setContent:
 }
 
 // Drops Tab
-function DropsTab({ drops, setDrops, products }: { drops: Drop[]; setDrops: (d: Drop[]) => void; products: Product[] }) {
+function DropsTab({ drops, setDrops, products }: { drops: Drop[]; setDrops: (d: Drop[]) => void; products: AdminProduct[] }) {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -629,15 +744,19 @@ function DropsTab({ drops, setDrops, products }: { drops: Drop[]; setDrops: (d: 
             </div>
             <div>
               <Label>Status</Label>
-              <select
+              <Select
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as Drop["status"] })}
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
+                onValueChange={(v) => setFormData({ ...formData, status: v as Drop["status"] })}
               >
-                <option value="upcoming">Upcoming</option>
-                <option value="live">Live</option>
-                <option value="ended">Ended</option>
-              </select>
+                <SelectTrigger className="rounded-lg border-white/10 bg-black/60 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="upcoming">Upcoming</SelectItem>
+                  <SelectItem value="live">Live</SelectItem>
+                  <SelectItem value="ended">Ended</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="mt-4 flex gap-3">

@@ -9,7 +9,7 @@ import { Check } from "lucide-react";
 
 const perks = [
   "Early access to all exhibitions",
-  "Private archive access (coming soon)",
+  "Private archive access",
   "Exhibition announcements before anyone else",
   "Exclusive studio notes and behind-the-scenes",
 ];

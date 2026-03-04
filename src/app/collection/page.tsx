@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import SectionHeading from "@/components/section-heading";
 import ProductCard from "@/components/product-card";
-import { products } from "@/lib/data";
+import { useProducts } from "@/context/products-context";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -23,6 +23,7 @@ const sorts = [
 ] as const;
 
 export default function CollectionPage() {
+  const { products } = useProducts();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("All");
   const [tagFilter, setTagFilter] = useState<string>("All");

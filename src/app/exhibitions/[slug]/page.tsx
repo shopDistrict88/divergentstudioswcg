@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { exhibitions, products } from "@/lib/data";
+import { useParams } from "next/navigation";
+import { useExhibitions } from "@/context/exhibitions-context";
+import { useProducts } from "@/context/products-context";
 import ExhibitionHero from "@/components/exhibition-hero";
 import LookbookScroller from "@/components/lookbook-scroller";
 import SectionHeading from "@/components/section-heading";
@@ -8,20 +11,22 @@ import ProductCard from "@/components/product-card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
-export async function generateStaticParams() {
-  return exhibitions.map((e) => ({ slug: e.slug }));
-}
-
-export default async function ExhibitionPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
+export default function ExhibitionPage() {
+  const params = useParams();
+  const slug = params.slug as string;
+  const { exhibitions } = useExhibitions();
+  const { products } = useProducts();
   const exhibition = exhibitions.find((e) => e.slug === slug);
 
   if (!exhibition) {
-    notFound();
+    return (
+      <div className="section-spacing mx-auto max-w-2xl px-4 text-center">
+        <p className="text-white/60 mb-6">Exhibition not found.</p>
+        <Button asChild variant="secondary">
+          <Link href="/">Go Home</Link>
+        </Button>
+      </div>
+    );
   }
 
   const exhibitionProducts = products.filter(
@@ -32,7 +37,6 @@ export default async function ExhibitionPage({
     <>
       <ExhibitionHero exhibition={exhibition} />
 
-      {/* Statement */}
       <section className="section-spacing mx-auto max-w-3xl px-4 text-center md:px-8">
         <div className="space-y-4">
           {exhibition.statement.map((line, i) => (
@@ -46,10 +50,8 @@ export default async function ExhibitionPage({
         </div>
       </section>
 
-      {/* Lookbook */}
       <LookbookScroller />
 
-      {/* Featured Pieces */}
       <section className="section-spacing mx-auto max-w-7xl px-4 md:px-8">
         <SectionHeading
           title="Featured Pieces"
@@ -62,7 +64,6 @@ export default async function ExhibitionPage({
         </div>
       </section>
 
-      {/* Exhibition Details */}
       <section className="section-spacing mx-auto max-w-7xl px-4 md:px-8">
         <div className="surface-card rounded-2xl p-8 text-center md:p-12">
           <p className="text-[10px] font-medium uppercase tracking-[0.35em] text-[var(--accent)] mb-2">

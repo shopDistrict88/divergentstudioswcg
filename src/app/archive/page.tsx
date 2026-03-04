@@ -1,8 +1,11 @@
+"use client";
+
 import SectionHeading from "@/components/section-heading";
 import ArchiveCard from "@/components/archive-card";
-import { exhibitions } from "@/lib/data";
+import { useExhibitions } from "@/context/exhibitions-context";
 
 export default function ArchivePage() {
+  const { exhibitions } = useExhibitions();
   return (
     <div className="section-spacing mx-auto max-w-7xl px-4 md:px-8">
       <SectionHeading

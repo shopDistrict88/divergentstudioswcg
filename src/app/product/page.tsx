@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useProducts } from "@/context/products-context";
 import { useExhibitions } from "@/context/exhibitions-context";
@@ -8,9 +8,9 @@ import ProductPageContent from "@/components/product-page-content";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-function ProductDetailContent() {
-  const params = useParams();
-  const slug = params?.slug as string | undefined;
+function ProductContent() {
+  const searchParams = useSearchParams();
+  const slug = searchParams.get("slug");
   const { products } = useProducts();
   const { exhibitions } = useExhibitions();
 
@@ -52,10 +52,10 @@ function ProductDetailContent() {
   );
 }
 
-export default function ProductSlugPage() {
+export default function ProductPage() {
   return (
     <Suspense fallback={<div className="section-spacing mx-auto max-w-2xl px-4 py-24 text-center text-white/50">Loading...</div>}>
-      <ProductDetailContent />
+      <ProductContent />
     </Suspense>
   );
 }

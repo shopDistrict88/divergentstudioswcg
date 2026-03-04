@@ -31,6 +31,13 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
         <div
           className={`relative aspect-[3/4] overflow-hidden rounded-xl bg-gradient-to-br ${productImageTones[tone]} transition-transform duration-300 group-hover:scale-[1.02] group-hover:shadow-[0_0_30px_rgba(189,22,64,0.15)]`}
         >
+          {product.images[0]?.src ? (
+            <img
+              src={product.images[0].src}
+              alt={product.images[0].alt || product.name}
+              className="h-full w-full object-cover"
+            />
+          ) : null}
           {/* Overlay on hover */}
           <div className="absolute inset-0 bg-black/10 opacity-0 transition-opacity group-hover:opacity-100" />
           {/* Tags */}

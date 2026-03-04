@@ -69,13 +69,24 @@ const defaultTracks: Track[] = [
   },
 ];
 
+// Shuffle array helper
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export function AudioProvider({ children }: { children: ReactNode }) {
-  const [isPlaying, setIsPlaying] = useState(true); // Auto-play on load
-  const [isMuted, setIsMuted] = useState(true); // Start muted by default
+  const [isPlaying, setIsPlaying] = useState(false); // Start false, set true after hydration
+  const [isMuted, setIsMuted] = useState(false); // Start unmuted
   const [volume, setVolumeState] = useState(0.3);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const [tracks, setTracks] = useState<Track[]>(defaultTracks);
-  const [hasEnteredSite, setHasEnteredSite] = useState(false);
+  const [tracks, setTracks] = useState<Track[]>(() => shuffleArray(defaultTracks)); // Shuffle on init
+  const [hasEnteredSite, setHasEnteredSite] = useState(true); // Launched — no splash gate
+  const [isHydrated, setIsHydrated] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const tracksLengthRef = useRef(tracks.length);
 
@@ -97,7 +108,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         setIsMuted(savedMuted === "true");
       }
 
-      // Use localStorage for persistence across sessions
+      // Splash disabled (site launched) — keep for any future re-enable
       const savedEntered = localStorage.getItem("divergent-entered");
       if (savedEntered === "true") {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -113,12 +124,22 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
       // Restore playing state (only if user has entered before)
       const savedPlaying = localStorage.getItem("divergent-audio-playing");
-      if (savedPlaying === "true" && savedEntered === "true") {
+      const savedMutedVal = localStorage.getItem("divergent-audio-muted");
+      
+      if (savedEntered === "true") {
+        // User has entered before - auto-resume
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsPlaying(true);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setIsMuted(savedMutedVal === "true");
       }
+      
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsHydrated(true);
     } catch (e) {
       console.error("Failed to load audio settings:", e);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsHydrated(true);
     }
   }, []);
 
@@ -161,20 +182,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (typeof window !== "undefined" && !audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.loop = false;
+      audioRef.current.muted = isMuted;
       audioRef.current.volume = isMuted ? 0 : volume;
       audioRef.current.addEventListener("ended", handleTrackEnded);
-      
-      // If we have tracks and user has entered before, set up audio
-      const savedEntered = localStorage.getItem("divergent-entered");
-      const savedPlaying = localStorage.getItem("divergent-audio-playing");
-      if (savedEntered === "true" && savedPlaying === "true" && tracks.length > 0) {
-        const track = tracks[currentTrackIndex];
-        if (track) {
-          audioRef.current.src = track.src;
-          // Attempt to auto-play (may be blocked by browser)
-          audioRef.current.play().catch(() => {});
-        }
-      }
     }
 
     return () => {
@@ -185,6 +195,22 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       }
     };
   }, [handleTrackEnded]);
+
+  // Auto-play after hydration completes (when user has previously entered)
+  useEffect(() => {
+    if (isHydrated && isPlaying && audioRef.current && tracks.length > 0) {
+      const track = tracks[currentTrackIndex];
+      if (track) {
+        audioRef.current.src = track.src;
+        audioRef.current.muted = isMuted;
+        audioRef.current.volume = isMuted ? 0 : volume;
+        // Attempt to auto-play (may be blocked by browser)
+        audioRef.current.play().catch(() => {
+          // Browser blocked autoplay - that's okay
+        });
+      }
+    }
+  }, [isHydrated]);
 
   // Update audio source when track changes
   useEffect(() => {
@@ -210,28 +236,28 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
   }, [isPlaying]);
 
-  // Handle volume/mute
+  // Handle volume/mute — use native .muted for reliability
   useEffect(() => {
     if (audioRef.current) {
+      audioRef.current.muted = isMuted;
       audioRef.current.volume = isMuted ? 0 : volume;
     }
   }, [volume, isMuted]);
 
   const togglePlay = () => setIsPlaying((prev) => !prev);
   
-  const toggleMute = () => {
+  const toggleMute = useCallback(() => {
     const newMuted = !isMuted;
     setIsMuted(newMuted);
-    // Also update volume immediately on the audio element
     if (audioRef.current) {
+      audioRef.current.muted = newMuted;
       audioRef.current.volume = newMuted ? 0 : volume;
-      // If unmuting and not playing, start playing
       if (!newMuted && !isPlaying) {
         setIsPlaying(true);
         audioRef.current.play().catch(() => {});
       }
     }
-  };
+  }, [isMuted, volume, isPlaying]);
   
   const setVolume = (v: number) => setVolumeState(Math.max(0, Math.min(1, v)));
 

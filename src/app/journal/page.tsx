@@ -1,8 +1,11 @@
+"use client";
+
 import SectionHeading from "@/components/section-heading";
 import JournalCard from "@/components/journal-card";
-import { journalPosts } from "@/lib/data";
+import { useJournal } from "@/context/journal-context";
 
 export default function JournalPage() {
+  const { journalPosts } = useJournal();
   return (
     <div className="section-spacing mx-auto max-w-7xl px-4 md:px-8">
       <SectionHeading
