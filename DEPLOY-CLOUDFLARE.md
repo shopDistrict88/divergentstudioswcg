@@ -1,6 +1,20 @@
 # Deploy to Cloudflare
 
-The project is configured for Cloudflare Workers via OpenNext.
+The project uses **OpenNext** + **Wrangler** (Worker-style deploy). Do **not** use Cloudflare Pages Git-based build—it expects static `out/` and will fail.
+
+## Fix: "Output directory out not found"
+
+If Cloudflare shows this error, the project is using **Git-based build**. Switch to deploy via GitHub Actions:
+
+1. **Cloudflare Dashboard** → Workers & Pages → **divergentstudioswcg**
+2. **Settings** → **Builds & deployments**
+3. Under **Build configuration**, either:
+   - Disconnect the Git repository and use **Direct Upload** only, or
+   - Turn off **Automatic builds** so only the GitHub Action deploys
+
+The GitHub Action runs `npm run deploy:cf` (OpenNext + Wrangler) and deploys correctly.
+
+---
 
 ## Option 1: GitHub Actions (recommended – runs on Linux)
 
