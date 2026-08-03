@@ -64,6 +64,10 @@ function rowToProduct(row: Record<string, unknown>): Product {
     exhibitionId: (row.exhibition_id as string) ?? "nova",
     tags,
     type: (row.type as Product["type"]) ?? "Hoodie",
+    status: ((row.status as Product["status"]) ?? "active") as Product["status"],
+    sizes: Array.isArray(row.sizes)
+      ? (row.sizes as string[])
+      : ["S", "M", "L", "XL"],
   };
 }
 

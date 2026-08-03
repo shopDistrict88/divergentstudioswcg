@@ -4,25 +4,28 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Lock, Eye, EyeOff } from "lucide-react";
-import { useAdmin } from "@/context/admin-context";
+import { useAuth } from "@/context/auth-context";
+import { isAdminEmail } from "@/lib/admin-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function AdminLoginPage() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login, isAuthenticated } = useAdmin();
+  const { user, isLoading: authLoading, signIn, signOut } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!authLoading && user && isAdminEmail(user.email)) {
       router.push("/studio-admin/dashboard");
     }
-  }, [isAuthenticated, router]);
+  }, [user, authLoading, router]);
 
-  if (isAuthenticated) {
+  if (authLoading || (user && isAdminEmail(user.email))) {
     return null;
   }
 
@@ -31,16 +34,21 @@ export default function AdminLoginPage() {
     setError("");
     setIsLoading(true);
 
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const success = login(password);
-    if (success) {
-      router.push("/studio-admin/dashboard");
-    } else {
-      setError("Invalid password");
+    const { error: err } = await signIn(email, password);
+    if (err) {
+      setError(err);
       setIsLoading(false);
+      return;
     }
+
+    if (!isAdminEmail(email)) {
+      await signOut();
+      setError("This account is not authorized for admin access.");
+      setIsLoading(false);
+      return;
+    }
+
+    router.push("/studio-admin/dashboard");
   };
 
   return (
@@ -60,29 +68,40 @@ export default function AdminLoginPage() {
               Studio Admin
             </h1>
             <p className="mt-2 text-xs uppercase tracking-[0.15em] text-white/50">
-              Enter your password to continue
+              Sign in with an authorized account
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="relative">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="email">Email</Label>
               <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@email.com"
+                required
+              />
+            </div>
+            <div className="relative">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
+                placeholder="••••••••"
+                required
+                minLength={6}
                 className="pr-10"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                className="absolute right-3 top-9 text-white/50 hover:text-white"
               >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
 
@@ -97,7 +116,7 @@ export default function AdminLoginPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Authenticating..." : "Sign In"}
+              {isLoading ? "Signing in…" : "Sign In"}
             </Button>
           </form>
 

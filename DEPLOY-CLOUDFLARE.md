@@ -23,8 +23,9 @@ The GitHub Action runs `npm run deploy:cf` (OpenNext + Wrangler) and deploys cor
    - `CLOUDFLARE_API_TOKEN` – create at [API Tokens](https://dash.cloudflare.com/profile/api-tokens) with "Edit Cloudflare Workers" scope
    - `STRIPE_SECRET_KEY` – your Stripe secret key
    - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` – your Stripe publishable key
-   - `NEXT_PUBLIC_SUPABASE_URL` – `https://cqnvbspuxgnhkwnozrpd.supabase.co`
+   - `NEXT_PUBLIC_SUPABASE_URL` – `https://hgeddhazzxrnheogeqpq.supabase.co`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` – your Supabase anon key
+   - `SUPABASE_SERVICE_ROLE_KEY` – your Supabase service role key (for order saves)
 
 2. **Push to `main` or `master`** – the workflow will build and deploy automatically.
 

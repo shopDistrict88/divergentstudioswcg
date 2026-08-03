@@ -55,17 +55,30 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
 
   const load = useCallback(async () => {
     setIsLoading(true);
-    const [storeProducts, adminRows] = await Promise.all([
-      fetchProducts("active"),
-      fetchAdminProducts(),
-    ]);
+    // Public storefront only needs active products — skip admin fetch on cold start
+    const storeProducts = await fetchProducts("active");
     setProducts(storeProducts);
-    setAdminProductsState(adminRows.map(rowToAdminProduct));
     setIsLoading(false);
+
+    // Admin catalog loads later — keeps entrance bandwidth free
+    window.setTimeout(() => {
+      void (async () => {
+        try {
+          const adminRows = await fetchAdminProducts();
+          setAdminProductsState(adminRows.map(rowToAdminProduct));
+        } catch {
+          /* non-critical */
+        }
+      })();
+    }, 2500);
   }, []);
 
   useEffect(() => {
-    load();
+    // Defer catalog fetch so entrance film gets the connection first
+    const t = window.setTimeout(() => {
+      void load();
+    }, 900);
+    return () => window.clearTimeout(t);
   }, [load]);
 
   const setAdminProducts = useCallback((list: AdminProduct[]) => {

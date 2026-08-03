@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# large original entrance encode (optimized files are used in public/media)
+public/media/*.original.mp4
+
 # vercel
 .vercel
 

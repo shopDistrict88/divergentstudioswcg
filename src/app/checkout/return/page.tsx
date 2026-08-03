@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SectionHeading from "@/components/section-heading";
+import { useAuth } from "@/context/auth-context";
 
 const PAYMENT_SERVER =
   typeof window !== "undefined"
@@ -15,6 +16,7 @@ const PAYMENT_SERVER =
 function CheckoutReturnContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
+  const { user } = useAuth();
   const [status, setStatus] = useState<"loading" | "complete" | "open" | "error">("loading");
   const [email, setEmail] = useState<string | null>(null);
 
@@ -32,13 +34,18 @@ function CheckoutReturnContent() {
           setStatus("complete");
           setEmail(data.customer_email || null);
           try {
+            await fetch(`${base}/api/orders/save`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sessionId, userId: user?.id }),
+            });
             await fetch(`${base}/api/send-order-confirmation`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ sessionId }),
             });
           } catch {
-            /* email optional, don't block UX */
+            /* optional, don't block UX */
           }
         } else if (data.status === "open") {
           setStatus("open");
@@ -47,7 +54,7 @@ function CheckoutReturnContent() {
         }
       })
       .catch(() => setStatus("error"));
-  }, [sessionId]);
+  }, [sessionId, user?.id]);
 
   if (status === "loading") {
     return (
@@ -70,9 +77,20 @@ function CheckoutReturnContent() {
           <p className="mt-4 text-sm text-white/60">
             A confirmation email will be sent to {email || "your email"}.
           </p>
-          <Button asChild className="mt-8">
-            <Link href="/collection">Continue Shopping</Link>
-          </Button>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            {user ? (
+              <Button asChild>
+                <Link href="/account">View My Orders</Link>
+              </Button>
+            ) : (
+              <Button asChild>
+                <Link href="/account/login">Create Account to Track Order</Link>
+              </Button>
+            )}
+            <Button asChild variant="secondary">
+              <Link href="/shop/">Continue browsing</Link>
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -103,7 +121,7 @@ function CheckoutReturnContent() {
           We couldn&apos;t confirm your payment. Please contact support if you were charged.
         </p>
         <Button asChild variant="secondary" className="mt-6">
-          <Link href="/collection">Return to Collection</Link>
+          <Link href="/shop/">Return to Shop</Link>
         </Button>
       </div>
     </div>

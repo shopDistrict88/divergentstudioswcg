@@ -15,8 +15,15 @@ import {
 } from "@/components/ui/accordion";
 import { ArrowLeft } from "lucide-react";
 import type { Product, Exhibition } from "@/lib/data";
+import { canPurchase } from "@/lib/siteMode";
 
 const sizes = ["S", "M", "L", "XL"];
+
+function stockLabel(status?: Product["status"]) {
+  if (status === "sold-out") return "Sold Out";
+  if (status === "draft") return "Unavailable";
+  return "Available";
+}
 
 interface ProductPageContentProps {
   product: Product;
@@ -30,30 +37,32 @@ export default function ProductPageContent({
   relatedProducts,
 }: ProductPageContentProps) {
   const isOneSize = product.type === "Accessory";
-  const [size, setSize] = useState(isOneSize ? "One Size" : "M");
+  const [size, setSize] = useState<string | null>(isOneSize ? "One Size" : null);
+  const [sizeError, setSizeError] = useState(false);
+  const soldOut = product.status === "sold-out";
+  const purchaseOk = canPurchase() && !soldOut;
 
   return (
     <div className="section-spacing mx-auto max-w-7xl px-4 md:px-8">
       <Link
-        href="/collection"
-        className="mb-8 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/50 transition hover:text-white"
+        href="/shop/"
+        className="mb-8 inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/45 transition hover:text-white focus-ring"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to Collection
+        <ArrowLeft className="h-3.5 w-3.5" /> Back to Shop
       </Link>
 
       <div className="grid gap-12 lg:grid-cols-2">
-        {/* Gallery */}
         <ProductGallery images={product.images} name={product.name} />
 
-        {/* Details */}
         <div className="flex flex-col gap-6">
           <ProductPlaque product={product} exhibition={exhibition} />
+
+          <p className="label-util text-white/40">{stockLabel(product.status)}</p>
 
           <p className="text-sm leading-relaxed text-white/60">
             {product.description}
           </p>
 
-          {/* Size selector */}
           {!isOneSize && (
             <div>
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50">
@@ -63,23 +72,46 @@ export default function ProductPageContent({
                 {sizes.map((s) => (
                   <button
                     key={s}
-                    onClick={() => setSize(s)}
-                    className={`h-10 w-10 rounded-full text-xs uppercase tracking-wide transition border ${
+                    type="button"
+                    onClick={() => {
+                      setSize(s);
+                      setSizeError(false);
+                    }}
+                    className={`h-10 w-10 text-xs uppercase tracking-wide transition border focus-ring ${
                       size === s
-                        ? "border-[var(--accent)] text-[var(--accent)]"
+                        ? "border-white/60 text-white"
                         : "border-white/15 text-white/60 hover:text-white"
                     }`}
+                    aria-pressed={size === s}
                   >
                     {s}
                   </button>
                 ))}
               </div>
+              {sizeError && (
+                <p className="mt-2 text-[10px] uppercase tracking-[0.2em] text-[var(--signal,#bd1640)]">
+                  Select a size
+                </p>
+              )}
             </div>
           )}
 
-          <AddToCartButton product={product} size={size} />
+          {purchaseOk ? (
+            <AddToCartButton
+              product={product}
+              size={size}
+              onRequireSize={() => setSizeError(true)}
+            />
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="btn-primary w-full cursor-not-allowed opacity-40"
+            >
+              {soldOut ? "Sold Out" : "Purchase Unavailable"}
+            </button>
+          )}
 
-          {/* Details accordion */}
           <Accordion type="single" collapsible className="mt-4">
             <AccordionItem value="materials">
               <AccordionTrigger>Materials</AccordionTrigger>
@@ -104,28 +136,11 @@ export default function ProductPageContent({
         </div>
       </div>
 
-      {/* Seen in the Studio placeholder */}
-      <section className="section-spacing">
-        <SectionHeading
-          title="Seen in the Studio"
-          subtitle="User gallery"
-        />
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="aspect-square rounded-xl bg-white/5 border border-white/10"
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* More from exhibition */}
       {relatedProducts.length > 0 && (
         <section className="section-spacing">
           <SectionHeading
-            title="More from NOVA"
-            subtitle="Explore other pieces from this exhibition"
+            title="Related artifacts"
+            subtitle="More from EXHIBITION 001: NOVA"
           />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {relatedProducts.map((p, i) => (

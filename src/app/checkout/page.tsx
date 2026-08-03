@@ -37,7 +37,7 @@ export default function CheckoutPage() {
           Your cart is empty. Add pieces before checking out.
         </p>
         <Button asChild variant="secondary">
-          <Link href="/collection">Continue Shopping</Link>
+          <Link href="/shop/">Continue browsing</Link>
         </Button>
       </div>
     );

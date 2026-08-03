@@ -32,6 +32,10 @@ export type Product = {
   exhibitionId: string;
   tags: string[];
   type: "Hoodie" | "Pants" | "Accessory";
+  /** Admin catalog status when available from Supabase */
+  status?: "active" | "draft" | "sold-out";
+  /** Available sizes from catalog when present */
+  sizes?: string[];
 };
 
 export type JournalPost = {
@@ -46,8 +50,8 @@ export type JournalPost = {
 };
 
 export const productImageTones: Record<ProductImage["tone"], string> = {
-  rose: "from-[#1a0b10] via-[#2a0f18] to-[#bd1640]",
-  slate: "from-[#0a0b10] via-[#12141f] to-[#1b1d2a]",
-  ember: "from-[#0c0b0b] via-[#1a0f0f] to-[#402122]",
-  ivory: "from-[#1a1a1a] via-[#222] to-[#2b2b2b]",
+  rose: "from-[#0f0f0f] via-[#1a1a1a] to-[#262626]",
+  slate: "from-[#000000] via-[#0f0f0f] to-[#1a1a1a]",
+  ember: "from-[#0f0f0f] via-[#1a1a1a] to-[#262626]",
+  ivory: "from-[#1a1a1a] via-[#262626] to-[#1a1a1a]",
 };

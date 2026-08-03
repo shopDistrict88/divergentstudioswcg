@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ShoppingBag, Menu, X, Volume2, VolumeX } from "lucide-react";
+import { ShoppingBag, Menu, X, Volume2, VolumeX, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/cart-context";
 import { useAudio } from "@/context/audio-context";
+import { useAuth } from "@/context/auth-context";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -19,6 +20,7 @@ const navLinks = [
 export default function SiteHeader() {
   const { toggleCart, itemCount } = useCart();
   const { isMuted, toggleMute, hasEnteredSite } = useAudio();
+  const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -72,6 +74,14 @@ export default function SiteHeader() {
             )}
           </button>
 
+          <Link
+            href={user ? "/account" : "/account/login"}
+            aria-label={user ? "My account" : "Sign in"}
+            className="rounded-full border border-white/10 p-2 text-white/60 transition hover:text-white"
+          >
+            <User className="h-4 w-4" />
+          </Link>
+
           {/* Studio Mode indicator */}
           <span className="hidden items-center gap-2 text-[9px] font-medium uppercase tracking-[0.25em] text-white/50 md:flex">
             <span className="relative flex h-2 w-2">
@@ -123,6 +133,15 @@ export default function SiteHeader() {
                 {isMuted ? "Sound Off" : "Sound On"}
               </button>
             )}
+
+            <Link
+              href={user ? "/account" : "/account/login"}
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-3 py-2 text-lg font-medium uppercase tracking-[0.2em] text-white/80"
+            >
+              <User className="h-5 w-5" />
+              {user ? "My Account" : "Sign In"}
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>

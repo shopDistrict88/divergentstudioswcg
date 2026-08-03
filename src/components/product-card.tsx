@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { Badge } from "@/components/ui/badge";
 import { productImageTones, type Product } from "@/lib/data";
 
 interface ProductCardProps {
@@ -24,38 +23,27 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       transition={{ duration: 0.6, delay: index * 0.1, ease: "easeOut" }}
     >
       <Link
-        href={`/product/${product.slug}`}
-        className="group block"
+        href={`/artifacts/${product.slug}/`}
+        className="group block focus-ring"
       >
-        {/* Image */}
         <div
-          className={`relative aspect-[3/4] overflow-hidden rounded-xl bg-gradient-to-br ${productImageTones[tone]} transition-transform duration-300 group-hover:scale-[1.02] group-hover:shadow-[0_0_30px_rgba(189,22,64,0.15)]`}
+          className={`relative aspect-[3/4] overflow-hidden bg-gradient-to-br ${productImageTones[tone]} transition duration-500 group-hover:brightness-110`}
         >
           {product.images[0]?.src ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={product.images[0].src}
               alt={product.images[0].alt || product.name}
               className="h-full w-full object-cover"
             />
           ) : null}
-          {/* Overlay on hover */}
-          <div className="absolute inset-0 bg-black/10 opacity-0 transition-opacity group-hover:opacity-100" />
-          {/* Tags */}
-          <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-            {product.tags.slice(0, 2).map((tag) => (
-              <Badge key={tag} variant="accent" className="bg-black/60 backdrop-blur text-[9px]">
-                {tag}
-              </Badge>
-            ))}
-          </div>
         </div>
 
-        {/* Plaque */}
         <div className="mt-4 space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white group-hover:text-glow transition">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/85">
             {product.name}
           </p>
-          <p className="text-xs text-white/50">${product.price}</p>
+          <p className="text-[11px] text-white/45">${product.price}</p>
         </div>
       </Link>
     </motion.div>

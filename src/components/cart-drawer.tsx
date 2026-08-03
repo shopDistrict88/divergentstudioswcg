@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Minus, Plus, X } from "lucide-react";
 import { useCart } from "@/context/cart-context";
-import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -11,110 +10,156 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
 import { productImageTones } from "@/lib/data";
 
 export default function CartDrawer() {
-  const { isOpen, closeCart, items = [], removeItem, updateQuantity, subtotal } = useCart();
+  const {
+    isOpen,
+    closeCart,
+    items = [],
+    removeItem,
+    updateQuantity,
+    subtotal,
+    itemCount,
+  } = useCart();
+
+  const bagLabel = String(itemCount).padStart(2, "0");
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && closeCart()}>
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Your Cart</SheetTitle>
-          <SheetDescription>
-            {items.length === 0
-              ? "Your cart is empty."
-              : `${items.length} item${items.length > 1 ? "s" : ""}`}
-          </SheetDescription>
+      <SheetContent className="flex w-full flex-col border-l border-dirty-white/10 bg-black sm:max-w-lg">
+        <SheetHeader className="pb-8">
+          <SheetTitle className="heading-object text-dirty-white">
+            Cart {bagLabel}
+          </SheetTitle>
+          <SheetDescription className="sr-only">Your bag</SheetDescription>
         </SheetHeader>
 
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center flex-1 py-16">
-            <p className="text-sm text-white/50 mb-6">No pieces selected yet.</p>
-            <Button variant="secondary" asChild onClick={closeCart}>
-              <Link href="/collection">View Collection</Link>
-            </Button>
+          <div className="flex flex-1 flex-col items-center justify-center py-16">
+            <p className="label-code text-faded">Empty</p>
+            <Link
+              href="/shop/"
+              onClick={closeCart}
+              className="btn-ghost mt-10 focus-ring"
+            >
+              Explore Collection
+            </Link>
           </div>
         ) : (
-          <div className="flex flex-col gap-6 mt-4">
-            {items.filter((item) => item?.product).map((item) => {
-              const tone = item.product?.images?.[0]?.tone || "slate";
-              return (
-                <div key={`${item.product?.id ?? ""}-${item.size ?? ""}`} className="flex gap-4">
-                  {/* Thumbnail */}
+          <div className="mt-6 flex flex-col gap-6">
+            {items
+              .filter((item) => item?.product)
+              .map((item) => {
+                const tone = item.product?.images?.[0]?.tone || "slate";
+                return (
                   <div
-                    className={`relative h-20 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gradient-to-br ${productImageTones[tone]}`}
+                    key={`${item.product?.id ?? ""}-${item.size ?? ""}`}
+                    className="flex gap-4"
                   >
-                    {item.product?.images?.[0]?.src ? (
-                      <img
-                        src={item.product.images[0].src}
-                        alt={item.product.images[0].alt || item.product.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : null}
-                  </div>
-                  <div className="flex flex-1 flex-col justify-between">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide">
-                          {item.product?.name ?? "Item"}
-                        </p>
-                        <p className="text-[10px] text-white/50 uppercase tracking-wide">
-                          {item.size}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => removeItem(item.product?.id ?? "", item.size)}
-                        className="text-white/40 hover:text-white transition"
-                        aria-label="Remove item"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
+                    <div
+                      className={`relative h-32 w-24 flex-shrink-0 overflow-hidden bg-gradient-to-br ${productImageTones[tone]}`}
+                    >
+                      {item.product?.images?.[0]?.src ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={item.product.images[0].src}
+                          alt={item.product.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="media-pending h-full text-[8px]">—</div>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 rounded-full border border-white/15 p-1">
+                    <div className="flex flex-1 flex-col justify-between">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-[11px] uppercase tracking-[0.14em] text-dirty-white/85">
+                            {item.product?.name ?? "Object"}
+                          </p>
+                          <p className="mt-1 label-code text-dirty-white/40">
+                            Size {item.size}
+                          </p>
+                        </div>
                         <button
+                          type="button"
                           onClick={() =>
-                            updateQuantity(item.product?.id ?? "", item.size, item.quantity - 1)
+                            removeItem(item.product?.id ?? "", item.size)
                           }
-                          className="h-6 w-6 flex items-center justify-center text-white/60 hover:text-white"
-                          aria-label="Decrease quantity"
+                          className="text-dirty-white/35 hover:text-dirty-white focus-ring"
+                          aria-label="Remove"
                         >
-                          <Minus className="h-3 w-3" />
-                        </button>
-                        <span className="w-6 text-center text-xs">{item.quantity}</span>
-                        <button
-                          onClick={() =>
-                            updateQuantity(item.product?.id ?? "", item.size, item.quantity + 1)
-                          }
-                          className="h-6 w-6 flex items-center justify-center text-white/60 hover:text-white"
-                          aria-label="Increase quantity"
-                        >
-                          <Plus className="h-3 w-3" />
+                          <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
-                      <p className="text-sm font-medium">${(item.product?.price ?? 0) * (item.quantity ?? 1)}</p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center border border-dirty-white/15">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateQuantity(
+                                item.product?.id ?? "",
+                                item.size,
+                                item.quantity - 1
+                              )
+                            }
+                            className="flex h-7 w-7 items-center justify-center text-dirty-white/50 focus-ring"
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </button>
+                          <span className="w-5 text-center text-xs text-dirty-white/80">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateQuantity(
+                                item.product?.id ?? "",
+                                item.size,
+                                item.quantity + 1
+                              )
+                            }
+                            className="flex h-7 w-7 items-center justify-center text-dirty-white/50 focus-ring"
+                            aria-label="Increase quantity"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </button>
+                        </div>
+                        <p className="text-sm text-dirty-white/70">
+                          ${(item.product?.price ?? 0) * (item.quantity ?? 1)}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
 
-            <Separator className="my-2" />
+            <div className="rule" />
 
             <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-wide text-white/60">Subtotal</span>
-              <span className="text-sm font-semibold">${subtotal}</span>
+              <span className="label-code text-dirty-white/40">
+                Subtotal
+              </span>
+              <span className="text-sm text-dirty-white/90">
+                ${subtotal}
+              </span>
             </div>
 
-            <Button asChild onClick={closeCart} className="w-full">
-              <Link href="/checkout">Checkout</Link>
-            </Button>
-
-            <Button asChild variant="secondary" onClick={closeCart} className="w-full">
-              <Link href="/cart">View Cart</Link>
-            </Button>
+            <Link
+              href="/checkout/"
+              onClick={closeCart}
+              className="btn-solid w-full focus-ring"
+            >
+              Checkout
+            </Link>
+            <Link
+              href="/bag/"
+              onClick={closeCart}
+              className="btn-ghost w-full text-center focus-ring"
+            >
+              View Bag
+            </Link>
           </div>
         )}
       </SheetContent>

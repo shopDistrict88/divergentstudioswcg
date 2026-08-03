@@ -17,7 +17,6 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
   const isFirstRender = useRef(true);
 
   useEffect(() => {
-    // Skip loading screen on initial mount
     if (isFirstRender.current) {
       isFirstRender.current = false;
       prevPathRef.current = pathname;
@@ -25,13 +24,12 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (pathname !== prevPathRef.current) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoading(true);
       prevPathRef.current = pathname;
 
       const timer = setTimeout(() => {
         setIsLoading(false);
-      }, 600);
+      }, 700);
 
       return () => clearTimeout(timer);
     }
@@ -44,27 +42,27 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
         {isLoading && (
           <motion.div
             key="loading-screen"
-            className="pointer-events-none fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#050505]"
+            className="pointer-events-none fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black texture-grain"
             initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="text-center">
-              <p className="text-[10px] font-medium uppercase tracking-[0.35em] text-white/60 mb-4">
-                Divergent Studios
-              </p>
-              <p className="text-sm font-light uppercase tracking-[0.25em] text-white/80 mb-8">
-                Entering Exhibition
-              </p>
-              <div className="relative h-[2px] w-48 overflow-hidden rounded-full bg-white/10">
-                <motion.div
-                  className="absolute left-0 top-0 h-full rounded-full bg-[var(--accent)]"
-                  initial={{ width: 0 }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                />
-              </div>
+            <motion.p
+              className="heading-release text-dirty-white/90"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            >
+              Divergent
+            </motion.p>
+            <div className="relative mt-10 h-px w-32 overflow-hidden bg-dirty-white/10">
+              <motion.div
+                className="absolute left-0 top-0 h-full bg-dirty-white/50"
+                initial={{ width: 0 }}
+                animate={{ width: "100%" }}
+                transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+              />
             </div>
           </motion.div>
         )}

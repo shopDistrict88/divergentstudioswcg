@@ -10,7 +10,9 @@ type ExhibitionsContextType = {
   refresh: () => void;
 };
 
-const ExhibitionsContext = createContext<ExhibitionsContextType | undefined>(undefined);
+const ExhibitionsContext = createContext<ExhibitionsContextType | undefined>(
+  undefined
+);
 
 export function ExhibitionsProvider({ children }: { children: ReactNode }) {
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
@@ -24,11 +26,16 @@ export function ExhibitionsProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    load();
+    const t = window.setTimeout(() => {
+      void load();
+    }, 1200);
+    return () => window.clearTimeout(t);
   }, []);
 
   return (
-    <ExhibitionsContext.Provider value={{ exhibitions, isLoading, refresh: load }}>
+    <ExhibitionsContext.Provider
+      value={{ exhibitions, isLoading, refresh: load }}
+    >
       {children}
     </ExhibitionsContext.Provider>
   );
@@ -36,6 +43,7 @@ export function ExhibitionsProvider({ children }: { children: ReactNode }) {
 
 export function useExhibitions() {
   const ctx = useContext(ExhibitionsContext);
-  if (!ctx) throw new Error("useExhibitions must be used within ExhibitionsProvider");
+  if (!ctx)
+    throw new Error("useExhibitions must be used within ExhibitionsProvider");
   return ctx;
 }

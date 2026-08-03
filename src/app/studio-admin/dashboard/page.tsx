@@ -77,7 +77,7 @@ const defaultContent: SiteContent = {
 };
 
 export default function AdminDashboardPage() {
-  const { isAuthenticated, logout } = useAdmin();
+  const { isAdmin, isLoading, logout } = useAdmin();
   const { tracks } = useAudio();
   const { adminProducts: products, saveProduct, removeProduct } = useProducts();
   const router = useRouter();
@@ -100,14 +100,14 @@ export default function AdminDashboardPage() {
     }
   }, []);
 
-  // Redirect if not authenticated
+  // Redirect if not an authorized admin
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isLoading && !isAdmin) {
       router.push("/studio-admin/login");
     }
-  }, [isAuthenticated, router]);
+  }, [isAdmin, isLoading, router]);
 
-  if (!isAuthenticated) {
+  if (isLoading || !isAdmin) {
     return null;
   }
 

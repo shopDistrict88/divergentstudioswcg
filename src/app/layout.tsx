@@ -1,30 +1,36 @@
 import type { Metadata, Viewport } from "next";
+import { Archivo, Space_Mono } from "next/font/google";
 import "./globals.css";
-import { CartProvider } from "@/context/cart-context";
-import { LoadingProvider } from "@/context/loading-context";
-import { AudioProvider } from "@/context/audio-context";
-import { AdminProvider } from "@/context/admin-context";
-import { ProductsProvider } from "@/context/products-context";
-import { ExhibitionsProvider } from "@/context/exhibitions-context";
-import { JournalProvider } from "@/context/journal-context";
-import SiteHeader from "@/components/site-header";
-import SiteFooter from "@/components/site-footer";
-import AnnouncementBar from "@/components/announcement-bar";
-import CartDrawer from "@/components/cart-drawer";
-import GrainOverlay from "@/components/grain-overlay";
-import SplashScreen from "@/components/splash-screen";
+import { SiteShell } from "@/components/layout/SiteShell";
+
+const body = Archivo({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-body",
+  display: "swap",
+});
+
+const code = Space_Mono({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-code",
+  display: "swap",
+});
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#000000",
 };
 
 export const metadata: Metadata = {
-  title: "Divergent Studios | Wearable Art. Limited Exhibitions.",
-  description:
-    "Experience streetwear as wearable art. Explore limited exhibitions and shop premium pieces from Divergent Studios.",
+  title: {
+    default: "Divergent Studios",
+    template: "%s — Divergent Studios",
+  },
+  description: "001 / NOVA — Divergent Studios",
 };
 
 export default function RootLayout({
@@ -33,29 +39,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${body.variable} ${code.variable}`}>
       <body className="font-sans antialiased">
-        <AdminProvider>
-          <ExhibitionsProvider>
-          <JournalProvider>
-          <ProductsProvider>
-          <AudioProvider>
-            <CartProvider>
-              <LoadingProvider>
-                <SplashScreen />
-                <GrainOverlay />
-                <AnnouncementBar />
-                <SiteHeader />
-                <CartDrawer />
-                <main className="min-h-screen pt-16">{children}</main>
-                <SiteFooter />
-              </LoadingProvider>
-            </CartProvider>
-          </AudioProvider>
-          </ProductsProvider>
-          </JournalProvider>
-          </ExhibitionsProvider>
-        </AdminProvider>
+        <SiteShell>{children}</SiteShell>
       </body>
     </html>
   );

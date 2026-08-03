@@ -196,31 +196,36 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     };
   }, [handleTrackEnded]);
 
-  // Auto-play after hydration completes (when user has previously entered)
+  // Auto-play after hydration — skip on entrance route so the film isn't starved
   useEffect(() => {
-    if (isHydrated && isPlaying && audioRef.current && tracks.length > 0) {
-      const track = tracks[currentTrackIndex];
-      if (track) {
-        audioRef.current.src = track.src;
-        audioRef.current.muted = isMuted;
-        audioRef.current.volume = isMuted ? 0 : volume;
-        // Attempt to auto-play (may be blocked by browser)
-        audioRef.current.play().catch(() => {
-          // Browser blocked autoplay - that's okay
-        });
-      }
+    if (!isHydrated || !isPlaying || !audioRef.current || tracks.length === 0) {
+      return;
+    }
+    const path = typeof window !== "undefined" ? window.location.pathname : "";
+    if (path === "/" || path === "") {
+      // Homepage entrance owns bandwidth; background music waits until later routes
+      return;
+    }
+    const track = tracks[currentTrackIndex];
+    if (track) {
+      audioRef.current.src = track.src;
+      audioRef.current.muted = isMuted;
+      audioRef.current.volume = isMuted ? 0 : volume;
+      audioRef.current.play().catch(() => {});
     }
   }, [isHydrated]);
 
-  // Update audio source when track changes
+  // Update audio source when track changes — skip on entrance homepage
   useEffect(() => {
-    if (audioRef.current && tracks.length > 0) {
-      const track = tracks[currentTrackIndex];
-      if (track) {
-        audioRef.current.src = track.src;
-        if (isPlaying) {
-          audioRef.current.play().catch(() => {});
-        }
+    if (!audioRef.current || tracks.length === 0) return;
+    const path = typeof window !== "undefined" ? window.location.pathname : "";
+    if (path === "/" || path === "") return;
+
+    const track = tracks[currentTrackIndex];
+    if (track) {
+      audioRef.current.src = track.src;
+      if (isPlaying) {
+        audioRef.current.play().catch(() => {});
       }
     }
   }, [currentTrackIndex, tracks, isPlaying]);

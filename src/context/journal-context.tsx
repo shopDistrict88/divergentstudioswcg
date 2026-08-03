@@ -24,7 +24,10 @@ export function JournalProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    load();
+    const t = window.setTimeout(() => {
+      void load();
+    }, 1400);
+    return () => window.clearTimeout(t);
   }, []);
 
   return (
