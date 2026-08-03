@@ -86,7 +86,7 @@ export default function SearchOverlay({ open, onClose }: Props) {
               {results.map((p, i) => (
                 <li key={p.id}>
                   <Link
-                    href={`/object/${p.slug}/`}
+                    href={`/products/${p.slug}/`}
                     onClick={onClose}
                     className="flex items-baseline justify-between gap-4 border-b border-dirty-white/10 py-3 focus-ring"
                   >

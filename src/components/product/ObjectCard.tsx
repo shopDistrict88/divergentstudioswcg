@@ -27,7 +27,7 @@ export default function ObjectCard({
 
   return (
     <Link
-      href={`/object/${product.slug}/`}
+      href={`/products/${product.slug}/`}
       className={`group block focus-ring ${oversized ? "md:col-span-2" : ""}`}
     >
       <div

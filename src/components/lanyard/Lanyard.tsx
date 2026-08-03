@@ -44,6 +44,7 @@ type LanyardProps = {
   imageFit?: "cover" | "contain";
   lanyardImage?: string | null;
   lanyardWidth?: number;
+  interactive?: boolean;
 };
 
 export default function Lanyard({
@@ -56,6 +57,7 @@ export default function Lanyard({
   imageFit = "cover",
   lanyardImage = null,
   lanyardWidth = 1,
+  interactive = true,
 }: LanyardProps) {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -85,6 +87,7 @@ export default function Lanyard({
             imageFit={imageFit}
             lanyardImage={lanyardImage}
             lanyardWidth={lanyardWidth}
+            interactive={interactive}
           />
         </Physics>
         <Environment blur={0.75}>
@@ -131,6 +134,7 @@ type BandProps = {
   imageFit?: "cover" | "contain";
   lanyardImage?: string | null;
   lanyardWidth?: number;
+  interactive?: boolean;
 };
 
 type BodyWithLerp = {
@@ -147,6 +151,7 @@ function Band({
   imageFit = "cover",
   lanyardImage = null,
   lanyardWidth = 1,
+  interactive = true,
 }: BandProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const band = useRef<any>(null);
@@ -254,16 +259,20 @@ function Band({
   ]);
 
   useEffect(() => {
-    if (hovered) {
+    if (!interactive) drag(false);
+  }, [interactive]);
+
+  useEffect(() => {
+    if (hovered && interactive) {
       document.body.style.cursor = dragged ? "grabbing" : "grab";
       return () => {
         document.body.style.cursor = "auto";
       };
     }
-  }, [hovered, dragged]);
+  }, [hovered, dragged, interactive]);
 
   useFrame((state, delta) => {
-    if (dragged) {
+    if (dragged && interactive) {
       vec.set(state.pointer.x, state.pointer.y, 0.5).unproject(state.camera);
       dir.copy(vec).sub(state.camera.position).normalize();
       vec.add(dir.multiplyScalar(state.camera.position.length()));
@@ -336,13 +345,15 @@ function Band({
           <group
             scale={2.25}
             position={[0, -1.2, -0.05]}
-            onPointerOver={() => hover(true)}
-            onPointerOut={() => hover(false)}
+            onPointerOver={() => interactive && hover(true)}
+            onPointerOut={() => interactive && hover(false)}
             onPointerUp={(e) => {
+              if (!interactive) return;
               (e.target as Element).releasePointerCapture(e.pointerId);
               drag(false);
             }}
             onPointerDown={(e) => {
+              if (!interactive) return;
               (e.target as Element).setPointerCapture(e.pointerId);
               drag(
                 new THREE.Vector3()

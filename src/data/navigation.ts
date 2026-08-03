@@ -3,38 +3,33 @@ export type NavLink = {
   label: string;
 };
 
-/** Primary nav — cinematic IA */
+/** Primary nav — studio IA */
 export const primaryNav: NavLink[] = [
-  { href: "/shop/", label: "Collection" },
-  { href: "/campaign/", label: "Campaign" },
+  { href: "/collections/", label: "Collections" },
   { href: "/archive/", label: "Archive" },
-  { href: "/record/", label: "Journal" },
-  { href: "/info/", label: "About" },
+  { href: "/journal/", label: "Journal" },
+  { href: "/studio/", label: "Studio" },
 ];
 
 export const mobileNav: NavLink[] = [
-  { href: "/shop/", label: "Collection" },
-  { href: "/campaign/", label: "Campaign" },
+  { href: "/collections/", label: "Collections" },
   { href: "/archive/", label: "Archive" },
-  { href: "/record/", label: "Journal" },
-  { href: "/info/", label: "About" },
-  { href: "/001/", label: "001 — NOVA" },
-  { href: "/access/", label: "Access" },
-  { href: "/track/", label: "Track" },
+  { href: "/journal/", label: "Journal" },
+  { href: "/studio/", label: "Studio" },
 ];
 
 export const footerNav = {
   primary: [
-    { href: "/shop/", label: "Collection" },
-    { href: "/campaign/", label: "Campaign" },
+    { href: "/collections/", label: "Collections" },
     { href: "/archive/", label: "Archive" },
-    { href: "/record/", label: "Journal" },
-    { href: "/access/", label: "Access" },
+    { href: "/journal/", label: "Journal" },
+    { href: "/studio/", label: "Studio" },
+    { href: "/contact/", label: "Contact" },
   ],
   legal: [
     { href: "/shipping/", label: "Shipping" },
     { href: "/returns/", label: "Returns" },
-    { href: "/privacy/", label: "Privacy" },
     { href: "/terms/", label: "Terms" },
+    { href: "/privacy/", label: "Privacy" },
   ],
 } as const;

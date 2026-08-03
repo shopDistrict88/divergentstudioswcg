@@ -22,9 +22,9 @@ import PageTransition from "./PageTransition";
 function ShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { hideChrome } = useChrome();
-  const isStudio = pathname?.startsWith("/studio");
+  const isStudioExperience = pathname?.startsWith("/studio/experience");
   const isAdmin = pathname?.startsWith("/studio-admin");
-  const chromeHidden = hideChrome || isStudio || isAdmin;
+  const chromeHidden = hideChrome || isStudioExperience || isAdmin;
 
   return (
     <SmoothScroll>

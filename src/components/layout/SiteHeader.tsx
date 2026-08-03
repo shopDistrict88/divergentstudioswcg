@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { primaryNav } from "@/data/navigation";
-import { siteConfig } from "@/lib/siteConfig";
 import { showShopLinks } from "@/lib/siteMode";
 import { useCart } from "@/context/cart-context";
 import MobileMenu from "./MobileMenu";
@@ -17,7 +16,7 @@ export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const shopOk = showShopLinks();
-  const bagLabel = String(itemCount).padStart(2, "0");
+  const cartLabel = String(itemCount).padStart(1, "0");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -36,21 +35,21 @@ export default function SiteHeader() {
       <header
         className={`fixed inset-x-0 top-0 z-[60] transition-all duration-500 ${
           scrolled
-            ? "header-blur border-b border-dirty-white/5"
-            : "bg-black/45"
+            ? "header-blur border-b border-dirty-white/5 bg-[#050505]/95"
+            : "bg-black/30"
         }`}
       >
         <div className="mx-auto grid h-14 max-w-[1600px] grid-cols-[1fr_auto] items-center gap-4 px-4 md:grid-cols-[1fr_auto_1fr] md:px-6">
           <Link
             href="/"
-            className="label-util shrink-0 text-dirty-white focus-ring"
+            className="label-util shrink-0 text-[#E8E6E1] focus-ring"
           >
-            {siteConfig.brand}
+            DIVERGENT
           </Link>
 
           {shopOk && (
             <nav
-              className="hidden items-center gap-6 md:flex"
+              className="hidden items-center gap-8 md:flex"
               aria-label="Primary"
             >
               {primaryNav.map((link) => {
@@ -64,7 +63,7 @@ export default function SiteHeader() {
                     data-active={active}
                     className="link-nav focus-ring"
                   >
-                    {link.label}
+                    {link.label.toUpperCase()}
                   </Link>
                 );
               })}
@@ -85,7 +84,7 @@ export default function SiteHeader() {
               className="link-nav focus-ring"
               aria-label={`Cart, ${itemCount} items`}
             >
-              Cart {bagLabel}
+              CART ({cartLabel})
             </button>
             <button
               type="button"

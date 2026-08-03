@@ -11,8 +11,8 @@ export const releaseConfig = {
   restock: "UNCONFIRMED",
   window: "UNCONFIRMED",
   documented: "2026",
-  path: "/001/",
-  shopPath: "/shop/",
+  path: "/collections/nova/",
+  shopPath: "/collections/",
   media: {
     poster: "/media/divergent-entrance-poster.jpg",
     film: "/media/divergent-entrance.mp4",

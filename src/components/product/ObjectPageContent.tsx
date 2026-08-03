@@ -131,7 +131,7 @@ export default function ObjectPageContent({
           <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
             <ScrollReveal className="lg:col-span-7">
               <Link
-                href="/shop/"
+                href="/collections/nova/"
                 className="label-code text-faded focus-ring"
               >
                 ← Collection
@@ -228,13 +228,13 @@ export default function ObjectPageContent({
       {related.length > 0 && (
         <section className="border-t border-dirty-white/10 section-cinematic">
           <ScrollReveal>
-            <p className="label-code text-faded">Also</p>
+            <p className="label-code text-faded">FROM THE SAME EXHIBITION</p>
           </ScrollReveal>
           <div className="scroll-strip mt-10">
             {related.map((p, i) => (
               <Link
                 key={p.id}
-                href={`/object/${p.slug}/`}
+                href={`/products/${p.slug}/`}
                 className="scroll-strip-item group relative block min-h-[70vh] overflow-hidden focus-ring"
               >
                 <div

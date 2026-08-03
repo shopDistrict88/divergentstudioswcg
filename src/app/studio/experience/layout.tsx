@@ -1,4 +1,4 @@
-export default function StudioLayout({
+export default function StudioExperienceLayout({
   children,
 }: {
   children: React.ReactNode;

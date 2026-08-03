@@ -2,18 +2,24 @@ export type ArchiveEntry = {
   id: string;
   code: string;
   year: string;
-  status: "OPEN" | "RESTRICTED" | "ARCHIVED" | "CLOSED";
+  status: "OPEN" | "RESTRICTED" | "ARCHIVED" | "CLOSED" | "ACTIVE ARCHIVE";
   href?: string;
+  type?: string;
+  developed?: string;
+  files?: number;
 };
 
-/** Real + placeholder archive rows — no fake past purchasable collections */
+/** Archive index rows — update as collections are preserved */
 export const archiveEntries: ArchiveEntry[] = [
   {
     id: "001",
     code: "NOVA",
     year: "2026",
-    status: "OPEN",
-    href: "/001/",
+    status: "ACTIVE ARCHIVE",
+    href: "/archive/nova/",
+    type: "EXHIBITION",
+    developed: "2025–2026",
+    files: 23,
   },
   {
     id: "002",
@@ -26,6 +32,17 @@ export const archiveEntries: ArchiveEntry[] = [
     code: "STUDIO RECORD",
     year: "—",
     status: "ARCHIVED",
-    href: "/record/",
+    href: "/journal/",
   },
 ];
+
+export const ARCHIVE_FILTERS = [
+  "ALL FILES",
+  "COLLECTIONS",
+  "RELEASED PIECES",
+  "PROTOTYPES",
+  "UNRELEASED",
+  "CAMPAIGNS",
+  "DOCUMENTS",
+  "REJECTED",
+] as const;

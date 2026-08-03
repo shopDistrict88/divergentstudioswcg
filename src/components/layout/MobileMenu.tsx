@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { mobileNav, footerNav } from "@/data/navigation";
 import { siteConfig } from "@/lib/siteConfig";
+import { releaseConfig } from "@/lib/releaseConfig";
+import { studioConfig } from "@/lib/studioConfig";
 import { showShopLinks } from "@/lib/siteMode";
 
 type Props = {
@@ -34,28 +36,39 @@ export default function MobileMenu({ open, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex flex-col bg-black px-4 pb-safe pt-16"
+      className="fixed inset-0 z-[70] flex flex-col bg-[#050505] px-6 pb-safe pt-20"
       role="dialog"
       aria-modal="true"
       aria-label="Menu"
     >
-      <nav className="flex flex-1 flex-col" aria-label="Mobile">
+      <p className="label-code text-dirty-white/25">RESTRICTED DIRECTORY</p>
+
+      <nav className="mt-10 flex flex-1 flex-col" aria-label="Mobile">
         {links.map((link) => (
           <Link
             key={link.href}
             href={link.href}
             onClick={onClose}
-            className="border-b border-dirty-white/10 py-5 text-[clamp(1.15rem,5vw,1.6rem)] uppercase tracking-[0.14em] text-dirty-white/90 focus-ring"
+            className="border-b border-dirty-white/10 py-6 text-[clamp(1.25rem,6vw,2rem)] uppercase tracking-[0.12em] text-[#E8E6E1] focus-ring"
           >
             {link.label}
           </Link>
         ))}
       </nav>
 
-      <div className="mt-8 space-y-4">
-        <p className="label-code text-dirty-white/35">
-          {siteConfig.brand}
-        </p>
+      <div className="mt-auto space-y-6 border-t border-dirty-white/10 pt-8">
+        <div>
+          <p className="label-code text-dirty-white/35">CURRENT EXHIBITION</p>
+          <p className="label-code mt-2 text-dirty-white/70">
+            {releaseConfig.id} — {releaseConfig.code}
+          </p>
+        </div>
+        <div>
+          <p className="label-code text-dirty-white/35">LATEST JOURNAL FILE</p>
+          <p className="label-code mt-2 text-dirty-white/70">
+            {studioConfig.status.items[3]?.value ?? "—"}
+          </p>
+        </div>
         <div className="flex flex-wrap gap-x-5 gap-y-2">
           <a
             href={siteConfig.social.instagram}
@@ -65,7 +78,7 @@ export default function MobileMenu({ open, onClose }: Props) {
           >
             Instagram
           </a>
-          {footerNav.legal.slice(0, 3).map((l) => (
+          {footerNav.legal.slice(0, 2).map((l) => (
             <Link
               key={l.href}
               href={l.href}
@@ -75,13 +88,6 @@ export default function MobileMenu({ open, onClose }: Props) {
               {l.label}
             </Link>
           ))}
-          <Link
-            href="/contact/"
-            onClick={onClose}
-            className="label-util text-dirty-white/45 hover:text-dirty-white/80 focus-ring"
-          >
-            Contact
-          </Link>
         </div>
       </div>
     </div>

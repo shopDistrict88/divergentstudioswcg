@@ -17,11 +17,12 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
-  --color-dirty-white: #f6f6f6;
-  --color-faded: #9a9a9a;
-  --color-charcoal: #1a1a1a;
-  --color-concrete: #262626;
-  --color-washed: #0f0f0f;
+  --color-dirty-white: #e8e6e1;
+  --color-faded: #8c8c88;
+  --color-charcoal: #1b1b1b;
+  --color-concrete: #111111;
+  --color-washed: #0a0a0a;
+  --color-studio-black: #050505;
   --color-warn: #9a9a9a;
   --radius-sm: 0;
   --radius-md: 0;
@@ -31,23 +32,23 @@
 
 :root {
   --radius: 0;
-  --background: #000000;
-  --foreground: #f6f6f6;
-  --card: #0f0f0f;
-  --card-foreground: #f6f6f6;
-  --border: rgba(246, 246, 246, 0.1);
-  --input: rgba(246, 246, 246, 0.06);
-  --ring: rgba(246, 246, 246, 0.35);
-  --accent: #f6f6f6;
-  --accent-foreground: #000000;
-  --muted: rgba(246, 246, 246, 0.04);
-  --muted-foreground: rgba(246, 246, 246, 0.45);
-  --dirty-white: #f6f6f6;
-  --charcoal: #1a1a1a;
-  --concrete: #262626;
-  --faded: #9a9a9a;
-  --silver: #9a9a9a;
-  --washed: #0f0f0f;
+  --background: #050505;
+  --foreground: #e8e6e1;
+  --card: #111111;
+  --card-foreground: #e8e6e1;
+  --border: rgba(255, 255, 255, 0.14);
+  --input: rgba(255, 255, 255, 0.035);
+  --ring: rgba(232, 230, 225, 0.35);
+  --accent: #e8e6e1;
+  --accent-foreground: #050505;
+  --muted: rgba(255, 255, 255, 0.035);
+  --muted-foreground: rgba(232, 230, 225, 0.45);
+  --dirty-white: #e8e6e1;
+  --charcoal: #1b1b1b;
+  --concrete: #111111;
+  --faded: #8c8c88;
+  --silver: #8c8c88;
+  --washed: #0a0a0a;
   --nova-rose: #9a9a9a;
   --muted-red: #262626;
   --deep-brown: #1a1a1a;
@@ -61,7 +62,7 @@
 
 html {
   scroll-behavior: auto;
-  background-color: #000000;
+  background-color: #050505;
 }
 
 html.lenis,
@@ -457,4 +458,50 @@ html,
 body {
   overflow-x: hidden;
   max-width: 100vw;
+}
+
+/* ——— Hero motion ——— */
+.hero-ken-burns {
+  animation: heroKenBurns 24s ease-in-out infinite alternate;
+  transform-origin: center center;
+}
+
+@keyframes heroKenBurns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+
+/* ——— Status indicator ——— */
+.status-pulse {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(232, 230, 225, 0.35);
+  animation: statusPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-ken-burns {
+    animation: none;
+  }
+  .status-pulse {
+    animation: none;
+  }
 }

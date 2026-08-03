@@ -2,24 +2,30 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const REDIRECTS: Record<string, string> = {
-  "/collection": "/shop/",
-  "/collection/": "/shop/",
-  "/cart": "/bag/",
-  "/cart/": "/bag/",
-  "/about": "/info/",
-  "/about/": "/info/",
-  "/philosophy": "/info/",
-  "/philosophy/": "/info/",
+  "/collection": "/collections/",
+  "/collection/": "/collections/",
+  "/shop": "/collections/",
+  "/shop/": "/collections/",
+  "/bag": "/cart/",
+  "/bag/": "/cart/",
+  "/about": "/studio/",
+  "/about/": "/studio/",
+  "/info": "/studio/",
+  "/info/": "/studio/",
+  "/philosophy": "/studio/",
+  "/philosophy/": "/studio/",
   "/studio-pass": "/access/",
   "/studio-pass/": "/access/",
-  "/exhibition": "/001/",
-  "/exhibition/": "/001/",
-  "/exhibitions/nova": "/001/",
-  "/exhibitions/nova/": "/001/",
-  "/artifacts": "/shop/",
-  "/artifacts/": "/shop/",
-  "/journal": "/record/",
-  "/journal/": "/record/",
+  "/exhibition": "/collections/nova/",
+  "/exhibition/": "/collections/nova/",
+  "/exhibitions/nova": "/collections/nova/",
+  "/exhibitions/nova/": "/collections/nova/",
+  "/001": "/collections/nova/",
+  "/001/": "/collections/nova/",
+  "/artifacts": "/collections/",
+  "/artifacts/": "/collections/",
+  "/record": "/journal/",
+  "/record/": "/journal/",
 };
 
 export function middleware(request: NextRequest) {
@@ -33,21 +39,28 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith("/product/") && pathname !== "/product/") {
     const slug = pathname.replace(/^\/product\//, "").replace(/\/$/, "");
     if (slug) {
-      return NextResponse.redirect(new URL(`/object/${slug}/`, request.url));
+      return NextResponse.redirect(new URL(`/products/${slug}/`, request.url));
     }
   }
 
   if (pathname.startsWith("/artifacts/") && pathname !== "/artifacts/") {
     const slug = pathname.replace(/^\/artifacts\//, "").replace(/\/$/, "");
     if (slug) {
-      return NextResponse.redirect(new URL(`/object/${slug}/`, request.url));
+      return NextResponse.redirect(new URL(`/products/${slug}/`, request.url));
     }
   }
 
-  if (pathname.startsWith("/journal/") && pathname !== "/journal/") {
-    const slug = pathname.replace(/^\/journal\//, "").replace(/\/$/, "");
+  if (pathname.startsWith("/object/") && pathname !== "/object/") {
+    const slug = pathname.replace(/^\/object\//, "").replace(/\/$/, "");
     if (slug) {
-      return NextResponse.redirect(new URL(`/record/${slug}/`, request.url));
+      return NextResponse.redirect(new URL(`/products/${slug}/`, request.url));
+    }
+  }
+
+  if (pathname.startsWith("/record/") && pathname !== "/record/") {
+    const slug = pathname.replace(/^\/record\//, "").replace(/\/$/, "");
+    if (slug) {
+      return NextResponse.redirect(new URL(`/journal/${slug}/`, request.url));
     }
   }
 

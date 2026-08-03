@@ -39,7 +39,7 @@ export default function CartDrawer() {
           <div className="flex flex-1 flex-col items-center justify-center py-16">
             <p className="label-code text-faded">Empty</p>
             <Link
-              href="/shop/"
+              href="/collections/"
               onClick={closeCart}
               className="btn-ghost mt-10 focus-ring"
             >
@@ -154,7 +154,7 @@ export default function CartDrawer() {
               Checkout
             </Link>
             <Link
-              href="/bag/"
+              href="/cart/"
               onClick={closeCart}
               className="btn-ghost w-full text-center focus-ring"
             >
