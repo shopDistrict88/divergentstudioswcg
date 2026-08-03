@@ -8,10 +8,5 @@
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
-  },
-  "routes": [
-    { "pattern": "shopdivergent.com", "custom_domain": true },
-    { "pattern": "www.shopdivergent.com", "custom_domain": true },
-    { "pattern": "divergentstudioswcg.pages.dev", "custom_domain": true }
-  ]
+  }
 }

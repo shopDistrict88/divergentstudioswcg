@@ -29,6 +29,7 @@ jobs:
           COMING_SOON: "true"
 
       - name: Deploy to Cloudflare
+        id: deploy
         run: npx opennextjs-cloudflare deploy
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -39,6 +40,14 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           COMING_SOON: "true"
+
+      - name: Upload OpenNext bundle
+        if: success() || steps.deploy.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: open-next-bundle
+          path: .open-next/
+          retention-days: 3
 
       - name: Set Stripe secret in Worker
         if: success()
