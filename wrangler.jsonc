@@ -2,10 +2,16 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "main": ".open-next/worker.js",
   "name": "divergentstudioswcg",
+  "account_id": "5594bac8b6a79e7696a426ca5b9e5a66",
   "compatibility_date": "2025-03-02",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
-  }
+  },
+  "routes": [
+    { "pattern": "shopdivergent.com", "custom_domain": true },
+    { "pattern": "www.shopdivergent.com", "custom_domain": true },
+    { "pattern": "divergentstudioswcg.pages.dev", "custom_domain": true }
+  ]
 }
