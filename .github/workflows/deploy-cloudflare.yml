@@ -21,7 +21,7 @@ jobs:
         run: npm ci
 
       - name: Build for Cloudflare
-        run: npm run build && npx opennextjs-cloudflare build --skipNextBuild
+        run: npx opennextjs-cloudflare build
         env:
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
