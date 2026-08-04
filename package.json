@@ -6,7 +6,7 @@
     "dev": "next dev",
     "dev:standalone": "next dev",
     "dev:api": "node server/server.js",
-    "build": "next build",
+    "build": "next build --webpack",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy:cf": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "start": "next start",
@@ -14,7 +14,7 @@
     "server": "node server/server.js"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "^1.17.1",
+    "@opennextjs/cloudflare": "^1.20.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",
